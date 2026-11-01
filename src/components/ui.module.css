@@ -1,20 +1,21 @@
 /* App shell */
-.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; background: var(--bg); }
-.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px; padding: 18px 14px; background: var(--panel); border-right: 1px solid var(--line); }
+.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; background: var(--panel); }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px; padding: 18px 14px; background: var(--sidebar); border-right: 1px solid var(--line); }
 .logo { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 18px; }
 .logo a { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
 .logoMark { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: #fff; }
 .iconBtn { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--muted); }
 .iconBtn:hover { background: var(--soft); color: var(--ink); }
 .navItem { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 10px; color: var(--text); font-weight: 500; }
-.navItem:hover { background: var(--soft); color: var(--ink); }
-.navOn, .navOn:hover { background: var(--soft); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
+.navItem:hover { background: var(--sidebar-hover); color: var(--ink); }
+.sidebar .iconBtn:hover { background: var(--sidebar-hover); }
+.navOn, .navOn:hover { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
 .navItem svg { color: var(--muted); flex-shrink: 0; }
 .navOn svg { color: var(--ink); }
 .subNav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px 20px; padding-left: 12px; border-left: 1px solid var(--line); }
 .subItem { height: 32px; display: flex; align-items: center; padding: 0 10px; border-radius: 9px; color: var(--text); font-weight: 500; }
-.subItem:hover { background: var(--soft); }
-.subOn, .subOn:hover { background: var(--soft); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
+.subItem:hover { background: var(--sidebar-hover); }
+.subOn, .subOn:hover { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); }
 .badge { margin-left: auto; min-width: 22px; height: 18px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; }
 .countBadge { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 500; }
 .spacer { flex: 1; }
