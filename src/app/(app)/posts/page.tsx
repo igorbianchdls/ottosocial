@@ -1,4 +1,4 @@
-import { PostsView } from '@/components/PostsView'
+import { PostsView } from '@/features/posts/PostsView'
 
 export default function PostsPage() {
   return <PostsView />

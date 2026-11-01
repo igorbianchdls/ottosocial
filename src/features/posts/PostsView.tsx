@@ -3,10 +3,13 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Heart, List, MessageCircle, Plus, Repeat2, Trash2 } from 'lucide-react'
-import { accounts, files, formatDateTime, formatLabel, type Post, type PostStatus } from '@/lib/data'
-import { usePosts } from '@/lib/store'
-import { NetworkIcon, StatusPill, Thumb } from './Common'
-import s from './ui.module.css'
+import { files } from '@/features/drive/data'
+import { Thumb } from '@/features/drive/Thumb'
+import { formatDateTime } from '@/lib/format'
+import { NetworkIcon, StatusPill } from './badges'
+import { accounts, formatLabel, type Post, type PostStatus } from './data'
+import { usePosts } from './store'
+import s from '@/components/ui.module.css'
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const tone: Record<PostStatus, string> = { agendado: 'var(--blue-soft)', publicado: 'var(--green-soft)', erro: 'var(--red-soft)', rascunho: '#f1f3f6' }

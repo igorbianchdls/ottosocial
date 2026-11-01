@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { ArrowRight, Plus, Upload } from 'lucide-react'
-import { STORAGE_LIMIT, files, folders, formatDate, formatSize } from '@/lib/data'
-import { usePosts } from '@/lib/store'
-import { Thumb } from './Common'
-import { PostRow } from './PostsView'
-import s from './ui.module.css'
+import { STORAGE_LIMIT, files, folders } from '@/features/drive/data'
+import { Thumb } from '@/features/drive/Thumb'
+import { PostRow } from '@/features/posts/PostsView'
+import { usePosts } from '@/features/posts/store'
+import { formatDate, formatSize } from '@/lib/format'
+import s from '@/components/ui.module.css'
 
 export function HomeView() {
   const { posts } = usePosts()

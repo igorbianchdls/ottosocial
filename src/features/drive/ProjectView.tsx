@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Activity, ArrowLeft, ChevronsRight, FolderClosed, FolderPlus, MoreHorizontal, MoreVertical, Pin, Plus, Search, Settings2, Share2, SlidersHorizontal } from 'lucide-react'
-import { files, folderFiles, folderSize, folders, formatDate, formatSize, projects, tagTone } from '@/lib/data'
-import s from './ui.module.css'
+import { formatDate, formatSize } from '@/lib/format'
+import { files, folderFiles, folderSize, folders, projects, tagTone } from './data'
+import s from '@/components/ui.module.css'
 
 export function ProjectView({ projectId }: { projectId: string }) {
   const project = projects.find(p => p.id === projectId) ?? projects[0]

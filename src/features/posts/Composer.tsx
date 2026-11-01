@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Check, Heart, MessageCircle, Send, Share2 } from 'lucide-react'
-import { accounts, files, folders, formatLabel, type PostFormat } from '@/lib/data'
-import { usePosts } from '@/lib/store'
-import { NetworkIcon, Thumb } from './Common'
-import s from './ui.module.css'
+import { files, folders } from '@/features/drive/data'
+import { Thumb } from '@/features/drive/Thumb'
+import { NetworkIcon } from './badges'
+import { accounts, formatLabel, type PostFormat } from './data'
+import { usePosts } from './store'
+import s from '@/components/ui.module.css'
 
 const MAX = 2200
 

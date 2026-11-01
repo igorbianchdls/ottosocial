@@ -1,4 +1,4 @@
-import { Composer } from '@/components/Composer'
+import { Composer } from '@/features/posts/Composer'
 
 export default async function PostarPage({ searchParams }: { searchParams: Promise<{ arquivos?: string }> }) {
   const { arquivos } = await searchParams

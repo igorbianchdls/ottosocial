@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ArrowLeft, Check, FolderClosed, LayoutGrid, List, Search, Send, Upload } from 'lucide-react'
-import { folderFiles, folders, formatDate, formatDuration, formatSize, projects } from '@/lib/data'
-import { Thumb } from './Common'
-import s from './ui.module.css'
+import { formatDate, formatDuration, formatSize } from '@/lib/format'
+import { folderFiles, folders, projects } from './data'
+import { Thumb } from './Thumb'
+import s from '@/components/ui.module.css'
 
 export function FolderView({ folderId }: { folderId: string }) {
   const router = useRouter()

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell, CalendarClock, FolderClosed, House, LogOut, PanelLeft, Send, Settings, Sparkles, UsersRound } from 'lucide-react'
-import { folders, projects } from '@/lib/data'
+import { folders, projects } from '@/features/drive/data'
 import s from './ui.module.css'
 
 export function Sidebar() {
