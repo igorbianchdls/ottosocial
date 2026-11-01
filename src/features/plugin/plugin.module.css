@@ -1,0 +1,32 @@
+.connections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.conn { display: flex; flex-direction: column; gap: 12px; }
+.connHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 34px; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+/* The SVGs are wordmarks; only the symbol on the left is shown. */
+.logo { height: 28px; width: 28px; object-fit: cover; object-position: left center; display: block; }
+.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--text); }
+.url { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--soft); border: 1px solid var(--line); color: var(--text); text-align: left; }
+.url code { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-size: 12.5px; font-weight: 500; }
+.group + .group { margin-top: 10px; }
+.group h3 { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+.modes { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--soft); border: 1px solid var(--line); flex-shrink: 0; }
+.modes button { height: 26px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; color: var(--muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.modes .modeOn { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgb(17 24 39 / .1); }
+.status { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+.st_feito { background: var(--green-soft); color: var(--green); }
+.st_aguardando { background: var(--amber-soft); color: var(--amber); }
+.st_recusado { background: var(--red-soft); color: var(--red); }
+.examples { display: flex; flex-direction: column; gap: 6px; }
+.examples button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--soft); text-align: left; color: var(--text); }
+.examples button:hover { color: var(--ink); background: #eef1f5; }
+.examples svg { color: var(--muted); flex-shrink: 0; }
+.note { display: flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 960px) {
+  .connections { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .modes { width: 100%; }
+  .modes button { flex: 1; justify-content: center; }
+}
