@@ -3,20 +3,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell, Blocks, CalendarClock, FolderClosed, House, LogOut, PanelLeft, Send, Settings, Sparkles, UsersRound } from 'lucide-react'
-import { folders, projects } from '@/features/drive/data'
+import { folders, spaces } from '@/features/spaces/data'
 import s from './ui.module.css'
 
 export function Sidebar() {
   const path = usePathname()
-  const inProjects = path.startsWith('/projetos') || path.startsWith('/pastas')
-  const folderProject = path.startsWith('/pastas/') ? folders.find(f => f.id === path.split('/')[2])?.projectId : undefined
+  const inSpaces = path.startsWith('/spaces') || path.startsWith('/pastas')
+  const folderSpace = path.startsWith('/pastas/') ? folders.find(f => f.id === path.split('/')[2])?.spaceId : undefined
   const item = (href: string, label: string, Icon: typeof House, on: boolean, extra?: React.ReactNode) =>
     <Link href={href} className={`${s.navItem} ${on ? s.navOn : ''}`} aria-current={on ? 'page' : undefined}><Icon size={18} />{label}{extra}</Link>
   return <aside className={s.sidebar}>
     <div className={s.logo}><Link href="/"><span className={s.logoMark}><Sparkles size={16} /></span>OttoSocial</Link><button className={s.iconBtn} aria-label="Recolher menu"><PanelLeft size={18} /></button></div>
     {item('/', 'Início', House, path === '/')}
-    {item('/projetos/otto', 'Projetos', FolderClosed, inProjects)}
-    {inProjects && <div className={s.subNav}>{projects.map(p => { const on = path === `/projetos/${p.id}` || folderProject === p.id; return <Link key={p.id} href={`/projetos/${p.id}`} className={`${s.subItem} ${on ? s.subOn : ''}`}>{p.name}</Link> })}</div>}
+    {item('/spaces', 'Spaces', FolderClosed, inSpaces)}
+    {inSpaces && <div className={s.subNav}>{spaces.map(p => { const on = path === `/spaces/${p.id}` || folderSpace === p.id; return <Link key={p.id} href={`/spaces/${p.id}`} className={`${s.subItem} ${on ? s.subOn : ''}`}>{p.name}</Link> })}</div>}
     {item('/postar', 'Postar', Send, path === '/postar')}
     {item('/posts', 'Agendados', CalendarClock, path === '/posts', <span className={s.countBadge}>3</span>)}
     {item('/contas', 'Contas', UsersRound, path === '/contas')}

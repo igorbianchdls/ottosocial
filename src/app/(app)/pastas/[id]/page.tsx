@@ -1,4 +1,4 @@
-import { FolderView } from '@/features/drive/FolderView'
+import { FolderView } from '@/features/spaces/FolderView'
 
 export default async function FolderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

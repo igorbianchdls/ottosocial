@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Check, Heart, MessageCircle, Send, Share2 } from 'lucide-react'
-import { files, folders } from '@/features/drive/data'
-import { Thumb } from '@/features/drive/Thumb'
+import { files, folders } from '@/features/spaces/data'
+import { Thumb } from '@/features/spaces/Thumb'
 import { NetworkIcon } from './badges'
 import { accounts, formatLabel, type PostFormat } from './data'
 import { usePosts } from './store'
@@ -39,7 +39,7 @@ export function Composer({ initialFiles }: { initialFiles: string[] }) {
   }
 
   return <section className={s.content}>
-    <div className={s.pageHead}><div><h1>Postar</h1><p>Escolha os arquivos do seu drive, escreva a legenda e publique ou agende.</p></div></div>
+    <div className={s.pageHead}><div><h1>Postar</h1><p>Escolha os arquivos dos seus spaces, escreva a legenda e publique ou agende.</p></div></div>
     <div className={s.composer}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div className={`${s.card} ${s.step}`}>

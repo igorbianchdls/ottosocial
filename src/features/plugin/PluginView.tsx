@@ -8,7 +8,7 @@ import s from '@/components/ui.module.css'
 import p from './plugin.module.css'
 
 const MODES_KEY = 'ottosocial-plugin-modes-v1'
-const groups = ['Drive', 'Posts', 'Legenda'] as const
+const groups = ['Spaces', 'Posts', 'Legenda'] as const
 
 export function PluginView() {
   const [connected, setConnected] = useState<Record<Assistant, boolean>>(() => Object.fromEntries(connections.map(c => [c.assistant, c.connected])) as Record<Assistant, boolean>)

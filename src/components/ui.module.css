@@ -124,6 +124,8 @@
 .table tbody tr:hover td { background: #fafbfc; }
 .cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .miniThumb { width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px; aspect-ratio: auto; }
+.miniThumb .thumbBadge, .miniThumb .thumbKind { display: none; }
+.miniThumb svg { width: 16px; height: 16px; }
 .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
 .empty { padding: 40px 20px; text-align: center; color: var(--muted); }

@@ -7,7 +7,7 @@ export default function LoginPage() {
     <div className={s.card}>
       <div className={s.logo}><span><Sparkles size={18} /></span>OttoSocial</div>
       <h1>Entrar na sua conta</h1>
-      <p className={s.sub}>Seu drive de mídias e as suas redes sociais em um só lugar.</p>
+      <p className={s.sub}>Seus spaces de mídias e as suas redes sociais em um só lugar.</p>
       <form className={s.form} action="/">
         <label>E-mail<input type="email" name="email" placeholder="voce@empresa.com" autoComplete="email" /></label>
         <label>Senha<input type="password" name="senha" placeholder="••••••••" autoComplete="current-password" /></label>

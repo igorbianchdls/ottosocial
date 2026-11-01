@@ -6,7 +6,7 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 
 export const metadata: Metadata = {
   title: 'OttoSocial',
-  description: 'Seu drive de mídias e a publicação nas redes sociais em um só lugar.',
+  description: 'Seus spaces de mídias e a publicação nas redes sociais em um só lugar.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

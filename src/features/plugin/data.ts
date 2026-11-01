@@ -1,7 +1,7 @@
 // Sample data for the ChatGPT / Claude plugin page until the MCP server exists (phase 2).
 
 export type Assistant = 'chatgpt' | 'claude'
-export type ToolGroup = 'Drive' | 'Posts' | 'Legenda'
+export type ToolGroup = 'Spaces' | 'Posts' | 'Legenda'
 /** What the assistant may do with a tool: run it, only prepare it for the user to confirm, or nothing. */
 export type ToolMode = 'livre' | 'confirmar' | 'bloqueado'
 export type Tool = { id: string; group: ToolGroup; name: string; description: string; mode: ToolMode; risky: boolean }
@@ -22,9 +22,9 @@ export const connections: Connection[] = [
 ]
 
 export const tools: Tool[] = [
-  { id: 'listar_projetos', group: 'Drive', name: 'Listar projetos e pastas', description: 'Mostra a estrutura do seu drive.', mode: 'livre', risky: false },
-  { id: 'buscar_arquivos', group: 'Drive', name: 'Buscar arquivos', description: 'Encontra vídeos, imagens e textos por nome, pasta ou tipo.', mode: 'livre', risky: false },
-  { id: 'detalhes_arquivo', group: 'Drive', name: 'Ver detalhes de um arquivo', description: 'Duração, tamanho, dimensões e onde já foi usado.', mode: 'livre', risky: false },
+  { id: 'listar_spaces', group: 'Spaces', name: 'Listar spaces e pastas', description: 'Mostra a estrutura dos seus spaces.', mode: 'livre', risky: false },
+  { id: 'buscar_arquivos', group: 'Spaces', name: 'Buscar arquivos', description: 'Encontra vídeos, imagens e textos por nome, pasta ou tipo.', mode: 'livre', risky: false },
+  { id: 'detalhes_arquivo', group: 'Spaces', name: 'Ver detalhes de um arquivo', description: 'Duração, tamanho, dimensões e onde já foi usado.', mode: 'livre', risky: false },
   { id: 'criar_rascunho', group: 'Posts', name: 'Criar rascunho', description: 'Monta o post com arquivo, legenda e contas, sem publicar.', mode: 'livre', risky: false },
   { id: 'agendar_post', group: 'Posts', name: 'Agendar post', description: 'Agenda para data e hora. Você confirma antes de entrar na fila.', mode: 'confirmar', risky: true },
   { id: 'publicar_agora', group: 'Posts', name: 'Publicar agora', description: 'Publica na hora nas contas escolhidas.', mode: 'bloqueado', risky: true },

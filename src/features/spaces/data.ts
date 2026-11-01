@@ -1,11 +1,11 @@
-// Sample data until the drive is backed by Supabase (phase 2).
+// Sample data until spaces are backed by Supabase (phase 2).
 
 export type FileKind = 'video' | 'image' | 'text'
 export type MediaFile = { id: string; folderId: string; name: string; kind: FileKind; size: number; duration?: number; width: number; height: number; createdAt: string; tone: string }
-export type Folder = { id: string; projectId: string; name: string; description: string; tags: string[]; createdAt: string; updatedAt: string }
-export type Project = { id: string; name: string }
+export type Folder = { id: string; spaceId: string; name: string; description: string; tags: string[]; createdAt: string; updatedAt: string }
+export type Space = { id: string; name: string }
 
-export const projects: Project[] = [
+export const spaces: Space[] = [
   { id: 'otto', name: 'Otto ERP' },
   { id: 'lumen', name: 'Lumen Hotel' },
   { id: 'pessoal', name: 'Pessoal' },
@@ -14,15 +14,15 @@ export const projects: Project[] = [
 export const tagTone: Record<string, string> = { Reels: 'blue', Vendas: 'blue', Marketing: 'gray', Anúncios: 'red', Bastidores: 'green', Institucional: 'gray', Rascunhos: 'amber' }
 
 export const folders: Folder[] = [
-  { id: 'reels', projectId: 'otto', name: 'Reels publicados', description: 'Vídeos que já foram ao ar no @otto.erp.', tags: ['Reels', 'Marketing'], createdAt: '2026-09-02', updatedAt: '2026-10-31' },
-  { id: 'brutos', projectId: 'otto', name: 'Vídeos brutos', description: 'Gravações originais antes da edição.', tags: ['Bastidores'], createdAt: '2026-08-14', updatedAt: '2026-10-29' },
-  { id: 'artes', projectId: 'otto', name: 'Artes e carrosséis', description: 'Imagens para feed e carrosséis.', tags: ['Marketing'], createdAt: '2026-08-20', updatedAt: '2026-10-25' },
-  { id: 'stories', projectId: 'otto', name: 'Stories', description: 'Formatos verticais de 15 segundos.', tags: ['Marketing'], createdAt: '2026-09-11', updatedAt: '2026-10-30' },
-  { id: 'anuncios', projectId: 'otto', name: 'Anúncios', description: 'Criativos para campanhas pagas.', tags: ['Anúncios', 'Vendas'], createdAt: '2026-09-21', updatedAt: '2026-10-27' },
-  { id: 'ideias', projectId: 'otto', name: 'Ideias e roteiros', description: 'Roteiros, ganchos e legendas.', tags: ['Rascunhos'], createdAt: '2026-08-01', updatedAt: '2026-10-31' },
-  { id: 'hotel-fotos', projectId: 'lumen', name: 'Fotos do hotel', description: 'Quartos, piscina e áreas comuns.', tags: ['Institucional'], createdAt: '2026-07-10', updatedAt: '2026-10-12' },
-  { id: 'hotel-reels', projectId: 'lumen', name: 'Reels do app', description: 'Gravações de tela do app no celular.', tags: ['Reels'], createdAt: '2026-10-28', updatedAt: '2026-10-30' },
-  { id: 'pessoal-geral', projectId: 'pessoal', name: 'Geral', description: 'Arquivos soltos.', tags: [], createdAt: '2026-06-01', updatedAt: '2026-10-01' },
+  { id: 'reels', spaceId: 'otto', name: 'Reels publicados', description: 'Vídeos que já foram ao ar no @otto.erp.', tags: ['Reels', 'Marketing'], createdAt: '2026-09-02', updatedAt: '2026-10-31' },
+  { id: 'brutos', spaceId: 'otto', name: 'Vídeos brutos', description: 'Gravações originais antes da edição.', tags: ['Bastidores'], createdAt: '2026-08-14', updatedAt: '2026-10-29' },
+  { id: 'artes', spaceId: 'otto', name: 'Artes e carrosséis', description: 'Imagens para feed e carrosséis.', tags: ['Marketing'], createdAt: '2026-08-20', updatedAt: '2026-10-25' },
+  { id: 'stories', spaceId: 'otto', name: 'Stories', description: 'Formatos verticais de 15 segundos.', tags: ['Marketing'], createdAt: '2026-09-11', updatedAt: '2026-10-30' },
+  { id: 'anuncios', spaceId: 'otto', name: 'Anúncios', description: 'Criativos para campanhas pagas.', tags: ['Anúncios', 'Vendas'], createdAt: '2026-09-21', updatedAt: '2026-10-27' },
+  { id: 'ideias', spaceId: 'otto', name: 'Ideias e roteiros', description: 'Roteiros, ganchos e legendas.', tags: ['Rascunhos'], createdAt: '2026-08-01', updatedAt: '2026-10-31' },
+  { id: 'hotel-fotos', spaceId: 'lumen', name: 'Fotos do hotel', description: 'Quartos, piscina e áreas comuns.', tags: ['Institucional'], createdAt: '2026-07-10', updatedAt: '2026-10-12' },
+  { id: 'hotel-reels', spaceId: 'lumen', name: 'Reels do app', description: 'Gravações de tela do app no celular.', tags: ['Reels'], createdAt: '2026-10-28', updatedAt: '2026-10-30' },
+  { id: 'pessoal-geral', spaceId: 'pessoal', name: 'Geral', description: 'Arquivos soltos.', tags: [], createdAt: '2026-06-01', updatedAt: '2026-10-01' },
 ]
 
 const tones = ['sand', 'blue', 'rose', 'green', 'violet', 'amber']

@@ -10,7 +10,7 @@ const items = [
 
 export default function NotificacoesPage() {
   return <section className={s.content}>
-    <div className={s.pageHead}><div><h1>Notificações</h1><p>O que aconteceu nas suas contas e no drive.</p></div></div>
+    <div className={s.pageHead}><div><h1>Notificações</h1><p>O que aconteceu nas suas contas e nos seus spaces.</p></div></div>
     <div className={s.card}><ul className={s.rows}>{items.map(([title, text]) => <li key={title}><span className={s.rowText}><b>{title}</b><small>{text}</small></span></li>)}</ul></div>
   </section>
 }

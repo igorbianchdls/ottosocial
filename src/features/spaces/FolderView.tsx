@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ArrowLeft, Check, FolderClosed, LayoutGrid, List, Search, Send, Upload } from 'lucide-react'
 import { formatDate, formatDuration, formatSize } from '@/lib/format'
-import { folderFiles, folders, projects } from './data'
+import { folderFiles, folders, spaces } from './data'
 import { Thumb } from './Thumb'
 import s from '@/components/ui.module.css'
 
 export function FolderView({ folderId }: { folderId: string }) {
   const router = useRouter()
   const folder = folders.find(f => f.id === folderId) ?? folders[0]
-  const project = projects.find(p => p.id === folder.projectId)!
+  const space = spaces.find(p => p.id === folder.spaceId)!
   const [mode, setMode] = useState<'grid' | 'list'>('grid')
   const [q, setQ] = useState('')
   const [picked, setPicked] = useState<string[]>([])
@@ -21,8 +21,8 @@ export function FolderView({ folderId }: { folderId: string }) {
   const post = () => router.push(`/postar?arquivos=${picked.join(',')}`)
   return <section className={s.content}>
     <div className={s.topRow}>
-      <Link href={`/projetos/${project.id}`} className={s.iconBtn} aria-label="Voltar"><ArrowLeft size={18} /></Link>
-      <nav className={s.crumbs} aria-label="Caminho"><Link href="/projetos/otto"><FolderClosed size={16} />Projetos</Link><span>›</span><Link href={`/projetos/${project.id}`}>{project.name}</Link><span>›</span><span>{folder.name}</span></nav>
+      <Link href={`/spaces/${space.id}`} className={s.iconBtn} aria-label="Voltar"><ArrowLeft size={18} /></Link>
+      <nav className={s.crumbs} aria-label="Caminho"><Link href="/spaces"><FolderClosed size={16} />Spaces</Link><span>›</span><Link href={`/spaces/${space.id}`}>{space.name}</Link><span>›</span><span>{folder.name}</span></nav>
     </div>
     <div className={s.pageHead}>
       <div><h1>{folder.name}</h1><p>{folder.description}</p></div>
