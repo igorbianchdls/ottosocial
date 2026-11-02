@@ -68,4 +68,11 @@ pnpm dev
 
 O schema está em `supabase/migrations/20261102000001_init.sql`: workspaces e membros, spaces, pastas (com subpastas), arquivos, favoritos e recentes, contas sociais (tokens só no servidor), posts (arquivos e contas por post), projetos e versões do editor, notificações, configurações e plugin. Todas as tabelas têm RLS: cada pessoa só vê e altera os workspaces de que é membro. Os arquivos ficam no bucket privado `media`, numa pasta por workspace (`<workspace_id>/...`).
 
-Para aplicar: Supabase → SQL Editor → colar o arquivo → Run (ou `supabase db push`).
+`20261102000002_jobs_invites_private.sql` acrescenta:
+
+- schema `private` (fora da API): tokens das contas, estados de OAuth e as funções internas de permissão. O servidor acessa os tokens só pelas funções `account_token_get/save` e `oauth_state_create/consume`, liberadas apenas para a chave secreta;
+- filas `file_jobs` (miniatura e proxy, criadas sozinhas a cada upload) e `publish_jobs` (uma por post e rede, mantida em dia quando o post é agendado, reagendado ou desagendado). Os workers pegam tarefas com `claim_file_jobs()` / `claim_publish_jobs()`;
+- convites `workspace_invites`, aceitos com `accept_invite(token)` pelo e-mail convidado;
+- `tags` em arquivos.
+
+Para aplicar: Supabase → SQL Editor → colar os arquivos em ordem → Run (ou `supabase db push`).
