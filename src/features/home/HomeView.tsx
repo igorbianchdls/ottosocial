@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { useSettings } from '@/features/settings/store'
 import { ArrowRight, Plus, Upload } from 'lucide-react'
 import { STORAGE_LIMIT } from '@/features/spaces/data'
 import { folderLabel, liveFiles, liveFolders } from '@/features/spaces/store'
@@ -12,6 +14,10 @@ import { formatDate, formatSize } from '@/lib/format'
 import s from '@/components/ui.module.css'
 
 export function HomeView() {
+  const [welcome, setWelcome] = useState(false)
+  // Coming from sign-up (/?bemvindo=1): a one-time welcome.
+  useEffect(() => { if (new URLSearchParams(location.search).has('bemvindo')) { setWelcome(true); history.replaceState(null, '', '/') } }, []) // eslint-disable-line react-hooks/set-state-in-effect
+  const { profile, workspace } = useSettings()
   const { posts } = usePosts()
   const drive = useDrive()
   const files = liveFiles(drive), folders = liveFolders(drive)
@@ -20,7 +26,8 @@ export function HomeView() {
   const published = posts.filter(p => p.status === 'publicado').sort((a, b) => b.date.localeCompare(a.date))
   const recent = [...files].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt) || b.id.localeCompare(a.id)).slice(0, 6)
   return <section className={s.content}>
-    <div className={s.pageHead}><div><h1>Olá, Igor</h1><p>Seus spaces de mídias e as próximas publicações.</p></div><div className={s.row}><Link href="/spaces" className={s.secondary}><Upload size={15} />Enviar arquivos</Link><Link href="/postar" className={s.primary}><Plus size={16} />Novo post</Link></div></div>
+    {welcome && <div className={s.welcome}><b>Tudo pronto, {profile.name}!</b><span>O workspace {workspace.name} foi criado. Comece enviando seus vídeos para um space ou criando um post.</span><button className={s.iconBtn} onClick={() => setWelcome(false)} aria-label="Fechar">×</button></div>}
+    <div className={s.pageHead}><div><h1>Olá, {profile.name}</h1><p>Seus spaces de mídias e as próximas publicações.</p></div><div className={s.row}><Link href="/spaces" className={s.secondary}><Upload size={15} />Enviar arquivos</Link><Link href="/postar" className={s.primary}><Plus size={16} />Novo post</Link></div></div>
     <div className={s.statsRow}>
       <div className={s.stat}><small>Armazenamento</small><b>{formatSize(used)}</b><span className={s.bar} style={{ marginTop: 8 }}><i style={{ width: `${used / STORAGE_LIMIT * 100}%`, background: 'linear-gradient(90deg, #93c5fd, #3b82f6)' }} /></span></div>
       <div className={s.stat}><small>Arquivos</small><b>{files.length}</b><em>em {folders.length} pastas</em></div>

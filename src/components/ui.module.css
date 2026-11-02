@@ -241,3 +241,6 @@
 :global(:root[data-theme='dark']) .folderCard:not(.folderActive) .folderFront { background: linear-gradient(180deg, rgb(40 45 56 / .94), #20242d); box-shadow: inset 0 1px 0 rgb(255 255 255 / .06); }
 :global(:root[data-theme='dark']) .paper { background: #313744; box-shadow: none; }
 :global(:root[data-theme='dark']) .paper:nth-child(2) { background: #383f4d; }
+.welcome { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 18px; border-radius: var(--radius); background: var(--green-soft); color: var(--ink); }
+.welcome b { white-space: nowrap; }
+.welcome span { flex: 1; color: var(--text); }
