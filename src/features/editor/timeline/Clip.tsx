@@ -2,7 +2,8 @@
 
 import { Captions, Film, Image as ImageIcon, Music, Shapes, Type } from 'lucide-react'
 import { media } from '../project/data'
-import type { Clip, TrackKind } from '../project/types'
+import { volumeAt } from '../project/audio'
+import type { Clip, Project, TrackKind } from '../project/types'
 import e from '../editor.module.css'
 
 export const kindIcon: Record<TrackKind, typeof Film> = { texto: Type, legenda: Captions, forma: Shapes, imagem: ImageIcon, video: Film, audio: Music }
@@ -29,17 +30,25 @@ function Waveform({ clip, ppf, width }: { clip: Clip; ppf: number; width: number
   </svg>
 }
 
-type Props = { clip: Clip; kind: TrackKind; ppf: number; on: boolean; onDrag: (ev: React.PointerEvent, c: Clip, mode: DragMode) => void; onSeek: (frame: number) => void }
+/** Volume line over the clip: fades and ducking show as dips. */
+function Envelope({ clip, ppf, width, project, voices }: { clip: Clip; ppf: number; width: number; project: Project; voices: [number, number][] }) {
+  const pts: string[] = []
+  for (let x = 0; x <= width; x += 3) pts.push(`${x},${(2 + (1 - volumeAt(project, clip, Math.min(clip.duration, x / ppf), voices)) * 36).toFixed(1)}`)
+  return <svg className={e.envelope} width={width} height="100%" viewBox={`0 0 ${width} 40`} preserveAspectRatio="none" aria-hidden><polyline points={pts.join(' ')} /></svg>
+}
 
-export function ClipView({ clip, kind, ppf, on, onDrag, onSeek }: Props) {
+type Props = { clip: Clip; kind: TrackKind; ppf: number; on: boolean; onDrag: (ev: React.PointerEvent, c: Clip, mode: DragMode) => void; onSeek: (frame: number) => void; project: Project; voices: [number, number][] }
+
+export function ClipView({ clip, kind, ppf, on, onDrag, onSeek, project, voices }: Props) {
   const width = Math.max(4, clip.duration * ppf)
   const m = media(clip.props.fileId)
-  const label = kind === 'texto' || kind === 'legenda' ? clip.props.text : kind === 'forma' ? (clip.props.shape === 'circulo' ? 'Círculo' : 'Retângulo') : m?.name
+  const label = kind === 'texto' || kind === 'legenda' ? clip.props.text : kind === 'forma' ? (clip.props.shape === 'circulo' ? 'Círculo' : clip.props.shape === 'progresso' ? 'Barra de progresso' : 'Retângulo') : m?.name
   const Icon = kindIcon[kind]
   const { transIn, transOut, keyframes } = clip.props
   return <div className={`${e.clip} ${e[`clip_${kind}`]} ${kind === 'video' || kind === 'imagem' ? e[`tone_${m?.tone ?? 'blue'}`] : ''} ${on ? e.clipOn : ''}`}
     style={{ left: clip.start * ppf, width }} onPointerDown={ev => onDrag(ev, clip, 'move')} title={label} data-clip-id={clip.id}>
     {kind === 'audio' && <Waveform clip={clip} ppf={ppf} width={width} />}
+    {(kind === 'audio' || (kind === 'video' && (clip.props.fadeIn || clip.props.fadeOut))) && <Envelope clip={clip} ppf={ppf} width={width} project={project} voices={voices} />}
     {transIn && <span className={`${e.trans} ${e.transIn}`} style={{ width: Math.min(width / 2, transIn.frames * ppf) }} title={`Entrada: ${transIn.type}`} />}
     {transOut && <span className={`${e.trans} ${e.transOut}`} style={{ width: Math.min(width / 2, transOut.frames * ppf) }} title={`Saída: ${transOut.type}`} />}
     <span className={e.clipLabel}><Icon size={12} />{label}{clip.speed && clip.speed !== 1 && <em className={e.speedTag}>{clip.speed}x</em>}</span>

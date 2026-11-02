@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, Check, CloudCheck, Download } from 'lucide-react'
+import { ArrowLeft, Check, CloudCheck, Download, History } from 'lucide-react'
 import type { PlayerRef } from '@remotion/player'
+import { formatDateTime } from '@/lib/format'
 import { Preview } from './preview/Preview'
 import { Timeline } from './timeline/Timeline'
 import { LeftPanel, type ChatMessage } from './panels/LeftPanel'
 import { Properties } from './panels/Properties'
 import { runCommand } from './ai/commands'
 import { defaultBox, fullBox, media, type MediaItem } from './project/data'
-import { addClip, clipEnd, duplicateClip, projectDuration, removeClips, rippleDelete, splitAt } from './project/ops'
+import { addClip, clipEnd, duplicateClip, insertClip, isLocked, projectDuration, removeClips, rippleDelete, splitAt, toggleMarker } from './project/ops'
+import { listVersions, saveVersion, type Version } from './project/versions'
 import { copyClips, pasteClips, type ClipboardItem } from './project/clipboard'
 import { createFrameStore, useEditor } from './project/useEditor'
 import { FPS, type ClipProps, type Project, type TrackKind } from './project/types'
@@ -19,6 +21,8 @@ import e from './editor.module.css'
 export function EditorView({ initial }: { initial: Project }) {
   const { project, apply, transient, commit, undo, redo, canUndo, canRedo } = useEditor(initial)
   const [selection, setSelection] = useState<string[]>([])
+  const [insertMode, setInsertMode] = useState(false)
+  const [versions, setVersions] = useState<Version[] | null>(null)
   const clipboard = useRef<ClipboardItem[]>([])
   const [playing, setPlaying] = useState(false)
   const [chat, setChat] = useState<ChatMessage[]>([])
@@ -38,13 +42,15 @@ export function EditorView({ initial }: { initial: Project }) {
     const kind: TrackKind = m.kind
     const seconds = m.kind === 'imagem' ? 3 : Math.min(m.duration ?? 5, m.kind === 'audio' ? 30 : 10)
     const props: ClipProps = m.kind === 'audio' ? { fileId: m.id, volume: m.id === 'a-narr' ? 1 : 0.4 } : { fileId: m.id, box: m.kind === 'video' ? fullBox : defaultBox.imagem, opacity: 1, volume: 1 }
-    const r = addClip(project, kind, { start: frame, duration: Math.round(seconds * FPS), trimStart: 0, props }, trackId)
+    const clip = { start: frame, duration: Math.round(seconds * FPS), trimStart: 0, props }
+    const r = insertMode ? insertClip(project, kind, clip, frame, trackId) : addClip(project, kind, clip, trackId)
     apply(() => r.project)
     setSelection([r.id])
-  }, [apply, frames, project])
+  }, [apply, frames, project, insertMode])
 
+  /** seconds 0 means the whole video (progress bar). */
   const addPreset = useCallback((kind: TrackKind, props: ClipProps, seconds: number) => {
-    const r = addClip(project, kind, { start: frames.get(), duration: seconds * FPS, trimStart: 0, props })
+    const r = seconds === 0 ? addClip(project, kind, { start: 0, duration: projectDuration(project), trimStart: 0, props }) : addClip(project, kind, { start: frames.get(), duration: seconds * FPS, trimStart: 0, props })
     apply(() => r.project)
     setSelection([r.id])
   }, [apply, frames, project])
@@ -64,8 +70,10 @@ export function EditorView({ initial }: { initial: Project }) {
     apply(() => r.project)
     setSelection([r.id])
   }, [apply, frames, project, selected])
-  const remove = useCallback(() => { if (selected.length) { apply(p => removeClips(p, selected)); setSelection([]) } }, [apply, selected])
-  const ripple = useCallback(() => { if (selected.length) { apply(p => rippleDelete(p, selected)); setSelection([]) } }, [apply, selected])
+  // Clips on locked tracks are never deleted.
+  const editable = useMemo(() => selected.filter(id => !isLocked(project, id)), [selected, project])
+  const remove = useCallback(() => { if (editable.length) { apply(p => removeClips(p, editable)); setSelection([]) } }, [apply, editable])
+  const ripple = useCallback(() => { if (editable.length) { apply(p => rippleDelete(p, editable)); setSelection([]) } }, [apply, editable])
   const copy = useCallback(() => {
     if (!selected.length) return
     clipboard.current = copyClips(project, selected)
@@ -110,12 +118,13 @@ export function EditorView({ initial }: { initial: Project }) {
       else if (mod && ev.key.toLowerCase() === 'v') { ev.preventDefault(); paste() }
       else if (mod && ev.key.toLowerCase() === 'a') { ev.preventDefault(); setSelection([...allIds]) }
       else if (!mod && ev.key.toLowerCase() === 's') split()
+      else if (!mod && ev.key.toLowerCase() === 'm') apply(p => toggleMarker(p, frames.get()))
       else if (ev.key === 'Delete' || ev.key === 'Backspace') { if (ev.shiftKey) ripple(); else remove() }
       else if (ev.key === 'Escape') setSelection([])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [toggle, seek, frames, undo, redo, duplicate, split, remove, ripple, copy, paste, allIds])
+  }, [toggle, seek, frames, undo, redo, duplicate, split, remove, ripple, copy, paste, allIds, apply])
 
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2600); return () => clearTimeout(t) }, [toast])
 
@@ -126,6 +135,17 @@ export function EditorView({ initial }: { initial: Project }) {
       <span className={e.saved}><CloudCheck size={15} />Salvo neste navegador</span>
       <span className={e.grow} />
       <span className={e.format}>{project.format}</span>
+      <div className={e.versionsWrap}>
+        <button className={e.versionsBtn} onClick={() => setVersions(versions ? null : listVersions(project.id))} aria-expanded={!!versions}><History size={16} />Versões</button>
+        {versions && <div className={e.versions}>
+          <button className={e.saveVersion} onClick={() => { setVersions(saveVersion(project, `Versão ${versions.length + 1}`)); setToast('Versão salva.') }}>Salvar versão agora</button>
+          {versions.length === 0 && <p className={e.hint}>Nenhuma versão salva ainda.</p>}
+          {versions.map(v => <div key={v.at + v.label} className={e.versionRow}>
+            <span><b>{v.label}</b><small>{formatDateTime(v.at)}</small></span>
+            <button onClick={() => { saveVersion(project, 'Antes de restaurar'); apply(() => ({ ...v.project, id: project.id })); setVersions(null); setToast(`${v.label} restaurada. A versão anterior foi guardada.`) }}>Restaurar</button>
+          </div>)}
+        </div>}
+      </div>
       <button className={e.export} onClick={() => setToast('A exportação para MP4 entra na próxima fase (Remotion Lambda). O vídeo vai direto para o seu Space.')}><Download size={16} />Exportar</button>
     </header>
     <div className={e.body}>
@@ -133,7 +153,7 @@ export function EditorView({ initial }: { initial: Project }) {
       <Preview project={project} playerRef={playerRef} frames={frames} selectedId={selected.length === 1 ? selected[0] : null} onSelect={id => select(id)} transient={transient} commit={commit} onPlaying={setPlaying} />
       <Properties project={project} selectedIds={selected} frames={frames} apply={apply} seek={seek} onDuplicate={duplicate} onSplit={split} onDelete={remove} onRipple={ripple} onCopy={copy} />
     </div>
-    <Timeline project={project} frames={frames} duration={duration} selectedIds={selected} playing={playing} onSelect={select} seek={seek} toggle={toggle}
+    <Timeline project={project} frames={frames} duration={duration} selectedIds={selected} playing={playing} onSelect={select} onSelectMany={setSelection} insertMode={insertMode} setInsertMode={setInsertMode} seek={seek} toggle={toggle}
       apply={apply} transient={transient} commit={commit} onSplit={split} onDelete={remove} onRipple={ripple} undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
       onDropMedia={(id, frame, trackId) => { const m = media(id); if (m) addMedia(m, frame, trackId) }} />
     {toast && <div className={e.toast} role="status"><Check size={15} />{toast}</div>}

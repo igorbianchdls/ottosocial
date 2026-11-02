@@ -2,12 +2,14 @@
 import { files } from '@/features/spaces/data'
 import { FPS, localStamp, type Box, type Clip, type ClipProps, type Filter, type Project, type Track, type TrackKind } from './types'
 
-export type MediaItem = { id: string; name: string; kind: 'video' | 'imagem' | 'audio'; duration?: number; tone: string; width?: number; height?: number }
+/** role tells voice from music, so music can duck under the voice. */
+export type MediaItem = { id: string; name: string; kind: 'video' | 'imagem' | 'audio'; duration?: number; tone: string; width?: number; height?: number; role?: 'voz' | 'musica' }
 
 export const audioLibrary: MediaItem[] = [
-  { id: 'a-lofi', name: 'Trilha — Lo-fi escritório.mp3', kind: 'audio', duration: 95, tone: 'green' },
-  { id: 'a-pop', name: 'Trilha — Pop animado.mp3', kind: 'audio', duration: 120, tone: 'green' },
-  { id: 'a-narr', name: 'Narração — nota fiscal.mp3', kind: 'audio', duration: 18, tone: 'green' },
+  { id: 'a-lofi', name: 'Trilha — Lo-fi escritório.mp3', kind: 'audio', duration: 95, tone: 'green', role: 'musica' },
+  { id: 'a-pop', name: 'Trilha — Pop animado.mp3', kind: 'audio', duration: 120, tone: 'green', role: 'musica' },
+  { id: 'a-narr', name: 'Narração — nota fiscal.mp3', kind: 'audio', duration: 18, tone: 'green', role: 'voz' },
+  { id: 'a-narr2', name: 'Narração — tour do hotel.mp3', kind: 'audio', duration: 12, tone: 'green', role: 'voz' },
 ]
 
 export const mediaLibrary: MediaItem[] = [
@@ -37,7 +39,7 @@ const caption = (text: string): ClipProps => ({ text, captionStyle: 'amarela', b
 
 export const sampleProjects: Project[] = [
   {
-    id: 'nota-fiscal', name: 'Reel — Nota fiscal no ChatGPT', format: '9:16', background: '#0b0d12', updatedAt: '2026-11-01T18:20',
+    id: 'nota-fiscal', name: 'Reel — Nota fiscal no ChatGPT', format: '9:16', background: '#0b0d12', updatedAt: '2026-11-01T18:20', ducking: { on: true, level: 0.3 }, markers: [90, 510],
     tracks: [
       track('texto', [
         clip(0, 3, title('Emite a nota sem sair do ChatGPT')),
@@ -94,12 +96,21 @@ export const textPresets: { label: string; props: ClipProps; kind: 'texto' | 'le
   { label: 'Chamada', kind: 'texto', seconds: 3, props: title('Comenta AQUI 👇', { color: '#111827', bg: '#facc15', anim: 'surgir', box: { x: 18, y: 42, w: 64, h: 10 } }) },
   { label: 'Digitando', kind: 'texto', seconds: 3, props: { text: 'Emite a nota da Maria', fontSize: 54, weight: 600, color: '#ffffff', bg: 'rgba(17,24,39,.75)', align: 'left', anim: 'digitar', box: { x: 8, y: 56, w: 84, h: 10 } } },
   { label: 'Legenda', kind: 'legenda', seconds: 3, props: caption('Escreva a frase da legenda') },
+  { label: 'Manchete', kind: 'texto', seconds: 3, props: { text: 'NOTA FISCAL EM 10 SEGUNDOS', font: 'bebas', fontSize: 130, weight: 400, color: '#facc15', align: 'center', anim: 'pop', stroke: { color: '#111827', width: 6 }, shadow: 0.6, transOut: { type: 'zoom', frames: 8 }, box: { x: 6, y: 14, w: 88, h: 18 } } },
+  { label: 'Nome e cargo', kind: 'texto', seconds: 4, props: { text: 'Igor\nFundador da Otto', fontSize: 46, weight: 600, color: '#ffffff', bg: 'rgba(17,24,39,.82)', align: 'left', anim: 'nenhuma', transIn: { type: 'deslizar', frames: 10 }, transOut: { type: 'fade', frames: 8 }, box: { x: 6, y: 74, w: 70, h: 10 } } },
+  { label: 'Destaque', kind: 'texto', seconds: 3, props: { text: 'GRÁTIS', font: 'bebas', fontSize: 150, weight: 400, color: '#ffffff', align: 'center', anim: 'pulsar', stroke: { color: '#e5484d', width: 8 }, shadow: 0.8, transIn: { type: 'zoom', frames: 8 }, box: { x: 15, y: 40, w: 70, h: 14 } } },
 ]
 
-export const shapePresets: { label: string; props: ClipProps }[] = [
+export const stickers = ['🔥', '👇', '✅', '💰', '🚀', '❤️', '😱', '👀', '⭐', '📈', '💡', '🎯', '⚡', '🤯', '👏', '📌']
+export const stickerProps = (emoji: string, anim: 'pulsar' | 'balancar' = 'pulsar'): ClipProps =>
+  ({ text: emoji, fontSize: 200, weight: 400, align: 'center', anim, transIn: { type: 'zoom', frames: 8 }, box: { x: 35, y: 40, w: 30, h: 15 } })
+
+/** full: lasts the whole video. */
+export const shapePresets: { label: string; props: ClipProps; full?: boolean }[] = [
   { label: 'Retângulo', props: { transIn: { type: 'zoom', frames: 8 }, shape: 'retangulo', bg: '#3b82f6', radius: 24, opacity: 1, box: defaultBox.forma } },
   { label: 'Círculo', props: { transIn: { type: 'zoom', frames: 8 }, shape: 'circulo', bg: '#f43f5e', opacity: 1, box: { x: 35, y: 40, w: 30, h: 17 } } },
   { label: 'Faixa', props: { transIn: { type: 'fade', frames: 8 }, shape: 'retangulo', bg: '#111827', radius: 0, opacity: 0.7, box: { x: 0, y: 66, w: 100, h: 18 } } },
+  { label: 'Barra de progresso', full: true, props: { shape: 'progresso', bg: '#facc15', opacity: 1, box: { x: 0, y: 0, w: 100, h: 1.2 } } },
 ]
 
 export const neutralFilter: Filter = { brightness: 1, contrast: 1, saturation: 1, grayscale: 0, sepia: 0 }

@@ -80,7 +80,7 @@ function Overlay({ project, frames, selectedId, onSelect, transient, commit, siz
     ev.stopPropagation()
     onSelect(id)
     const found = findClip(project, id)
-    if (!found?.clip.props.box) return
+    if (!found?.clip.props.box || found.track.locked) return
     const before = project, origin = found.clip.props.box, x0 = ev.clientX, y0 = ev.clientY
     const el = ev.currentTarget as HTMLElement
     el.setPointerCapture(ev.pointerId)

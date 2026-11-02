@@ -7,6 +7,7 @@ import { CaptionBlock } from './blocks/CaptionBlock'
 import { MediaBlock } from './blocks/MediaBlock'
 import { ShapeBlock } from './blocks/ShapeBlock'
 import { TextBlock } from './blocks/TextBlock'
+import { Watermark } from './blocks/Watermark'
 
 export type CompositionProps = { project: Project }
 
@@ -15,6 +16,7 @@ export function EditorComposition({ project }: CompositionProps) {
   return <AbsoluteFill style={{ background: project.background, fontFamily: fonts.geist.family, overflow: 'hidden' }}>
     {[...project.tracks].reverse().filter(t => !t.hidden && t.kind !== 'audio').map(t => t.clips.map(c =>
       <Sequence key={c.id} from={c.start} durationInFrames={c.duration} layout="none"><Layer kind={t.kind} clip={c} /></Sequence>))}
+    {project.watermark && (project.watermark.text || project.watermark.fileId) && <Watermark mark={project.watermark} />}
   </AbsoluteFill>
 }
 

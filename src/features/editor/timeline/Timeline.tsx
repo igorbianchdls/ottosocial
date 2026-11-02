@@ -1,15 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { BetweenHorizontalStart, Eye, EyeOff, Magnet, Pause, Play, Redo2, Scissors, SkipBack, SkipForward, Trash2, Undo2, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide-react'
-import { clipEnd, moveClip, moveClipsClamped, settle, settleAll, trimLeft, trimRight, updateTrack } from '../project/ops'
+import { ArrowRightToLine, BetweenHorizontalStart, Bookmark, Eye, EyeOff, GripVertical, Lock, LockOpen, Magnet, Pause, Play, Redo2, Scissors, SkipBack, SkipForward, Sparkle, Trash2, Undo2, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide-react'
+import { clipEnd, moveClip, moveClipsClamped, moveTrack, settle, settleAll, toggleMarker, trimLeft, trimRight, updateProps, updateTrack } from '../project/ops'
+import { voiceRanges } from '../project/audio'
 import { ClipView, kindIcon, type DragMode } from './Clip'
 import { useFrame, type FrameStore } from '../project/useEditor'
-import { FPS, kindLabel, type Clip, type Project, type Track, type TrackKind } from '../project/types'
+import { FPS, kindLabel, visualKinds, type Clip, type Project, type Track, type TrackKind, type TransitionType } from '../project/types'
 import e from '../editor.module.css'
 
 export const MEDIA_MIME = 'application/x-ottosocial-media'
-const HEAD = 132
+const HEAD = 168
+const ROW = 46
 const SNAP_PX = 8
 
 export { kindIcon }
@@ -21,20 +23,28 @@ export function timecode(frame: number) {
 
 type Props = {
   project: Project; frames: FrameStore; duration: number; selectedIds: string[]; playing: boolean
-  onSelect: (id: string | null, toggle?: boolean) => void; seek: (frame: number) => void; toggle: () => void
+  onSelect: (id: string | null, toggle?: boolean) => void; onSelectMany: (ids: string[]) => void; seek: (frame: number) => void; toggle: () => void
   apply: (fn: (p: Project) => Project) => void; transient: (p: Project) => void; commit: (before: Project) => void
   onSplit: () => void; onDelete: () => void; onRipple: () => void; undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean
   onDropMedia: (mediaId: string, frame: number, trackId?: string) => void
+  insertMode: boolean; setInsertMode: (on: boolean) => void
 }
+
+type CutMenu = { a: string; b: string; x: number; y: number; current?: TransitionType }
+const cutTypes: { id: TransitionType; label: string }[] = [{ id: 'fade', label: 'Fade' }, { id: 'deslizar', label: 'Deslizar' }, { id: 'zoom', label: 'Zoom' }, { id: 'desfoque', label: 'Desfoque' }]
 
 export function Timeline(props: Props) {
   const { project, frames, duration, selectedIds, playing, onSelect, seek, toggle, apply, transient, commit } = props
   const [pps, setPps] = useState(60)
   const [snap, setSnap] = useState(true)
   const [guide, setGuide] = useState<number | null>(null)
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const [cutMenu, setCutMenu] = useState<CutMenu | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
+  const inner = useRef<HTMLDivElement>(null)
   const ppf = pps / FPS
   const width = (duration + 10 * FPS) * ppf
+  const voices = voiceRanges(project)
 
   const frameAt = (clientX: number, el: Element) => Math.max(0, Math.round((clientX - el.getBoundingClientRect().left) / ppf))
 
@@ -51,17 +61,21 @@ export function Timeline(props: Props) {
   /**
    * Drag a clip body (move; alone it can also change track) or one of its edges (trim).
    * Shift/Ctrl/Cmd-click adds to the selection; dragging a selected clip moves the whole selection.
+   * Clips on locked tracks can be selected but not moved.
    */
   const dragClip = (ev: React.PointerEvent, clip: Clip, mode: DragMode) => {
     ev.stopPropagation()
     if (ev.button !== 0) return
+    setCutMenu(null)
     if (ev.shiftKey || ev.ctrlKey || ev.metaKey) { onSelect(clip.id, true); return }
-    const group = mode === 'move' && selectedIds.includes(clip.id) && selectedIds.length > 1 ? selectedIds : [clip.id]
-    if (group.length === 1) onSelect(clip.id)
+    const lockedIds = new Set(project.tracks.filter(t => t.locked).flatMap(t => t.clips.map(c => c.id)))
+    const group = mode === 'move' && selectedIds.includes(clip.id) && selectedIds.length > 1 ? selectedIds.filter(id => !lockedIds.has(id)) : [clip.id]
+    if (!selectedIds.includes(clip.id) || mode !== 'move') onSelect(clip.id)
+    if (lockedIds.has(clip.id) || !group.length) return
     const before = project, x0 = ev.clientX
     const el = ev.currentTarget as HTMLElement
     el.setPointerCapture(ev.pointerId)
-    const points = snap ? [0, frames.get(), ...project.tracks.flatMap(t => t.clips.filter(c => !group.includes(c.id)).flatMap(c => [c.start, clipEnd(c)]))] : []
+    const points = snap ? [0, frames.get(), ...(project.markers ?? []), ...project.tracks.flatMap(t => t.clips.filter(c => !group.includes(c.id)).flatMap(c => [c.start, clipEnd(c)]))] : []
     const snapTo = (f: number) => {
       let best: number | null = null
       for (const p of points) if (Math.abs(p - f) * ppf <= SNAP_PX && (best === null || Math.abs(p - f) < Math.abs(best - f))) best = p
@@ -81,7 +95,8 @@ export function Timeline(props: Props) {
         if (group.length > 1) show(moveClipsClamped(before, group, start - clip.start))
         else {
           const lane = document.elementsFromPoint(m.clientX, m.clientY).find(x => (x as HTMLElement).dataset?.trackId) as HTMLElement | undefined
-          show(moveClip(before, clip.id, start, lane?.dataset.trackId))
+          const target = before.tracks.find(t => t.id === lane?.dataset.trackId)
+          show(moveClip(before, clip.id, start, target && !target.locked ? target.id : undefined))
         }
         setGuide(g)
       } else {
@@ -101,6 +116,57 @@ export function Timeline(props: Props) {
     el.addEventListener('pointermove', move)
     el.addEventListener('pointerup', up)
     el.addEventListener('pointercancel', up)
+  }
+
+  /** Empty space: a click moves the playhead, a drag draws a box that selects the clips it touches. */
+  const laneDown = (ev: React.PointerEvent<HTMLDivElement>) => {
+    if (ev.target !== ev.currentTarget || ev.button !== 0) return
+    setCutMenu(null)
+    const box = inner.current!.getBoundingClientRect()
+    const x0 = ev.clientX, y0 = ev.clientY, lane = ev.currentTarget
+    const additive = ev.shiftKey || ev.ctrlKey || ev.metaKey
+    const startSel = additive ? selectedIds : []
+    let moved = false
+    const move = (m: PointerEvent) => {
+      if (!moved && Math.abs(m.clientX - x0) + Math.abs(m.clientY - y0) < 5) return
+      moved = true
+      const l = Math.min(x0, m.clientX), r = Math.max(x0, m.clientX), t = Math.min(y0, m.clientY), b = Math.max(y0, m.clientY)
+      setMarquee({ x: l - box.left, y: t - box.top, w: r - l, h: b - t })
+      const hit = [...inner.current!.querySelectorAll<HTMLElement>('[data-clip-id]')].filter(el => {
+        const c = el.getBoundingClientRect()
+        return c.left < r && c.right > l && c.top < b && c.bottom > t
+      }).map(el => el.dataset.clipId!)
+      props.onSelectMany([...new Set([...startSel, ...hit])])
+    }
+    const up = (u: PointerEvent) => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up)
+      setMarquee(null)
+      if (!moved) { if (!additive) onSelect(null); seek(frameAt(u.clientX, lane)) }
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
+  /** Drag a track header up or down to change the layer order. */
+  const dragTrack = (ev: React.PointerEvent, index: number) => {
+    ev.preventDefault()
+    const before = project, y0 = ev.clientY
+    const el = ev.currentTarget as HTMLElement
+    el.setPointerCapture(ev.pointerId)
+    let to = index
+    const move = (m: PointerEvent) => {
+      const next = Math.max(0, Math.min(before.tracks.length - 1, index + Math.round((m.clientY - y0) / ROW)))
+      if (next !== to) { to = next; transient(moveTrack(before, index, to)) }
+    }
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); if (to !== index) commit(before) }
+    el.addEventListener('pointermove', move)
+    el.addEventListener('pointerup', up)
+  }
+
+  const setCut = (menu: CutMenu, type: TransitionType | null) => {
+    const t = type ? { type, frames: 9 } : undefined
+    apply(p => updateProps(updateProps(p, menu.a, { transOut: t }), menu.b, { transIn: t }))
+    setCutMenu(null)
   }
 
   const drop = (ev: React.DragEvent<HTMLDivElement>, trackId?: string) => {
@@ -123,30 +189,44 @@ export function Timeline(props: Props) {
       <button className={e.tool} onClick={props.onSplit} disabled={selectedIds.length !== 1} title="Dividir na agulha (S)"><Scissors size={16} />Dividir</button>
       <button className={e.tool} onClick={props.onDelete} disabled={!hasSelection} title="Excluir (Delete)"><Trash2 size={16} /></button>
       <button className={e.tool} onClick={props.onRipple} disabled={!hasSelection} title="Excluir e fechar o buraco (Shift+Delete)"><BetweenHorizontalStart size={16} /></button>
+      <button className={e.tool} onClick={() => apply(p => toggleMarker(p, frames.get()))} title="Marcador na agulha (M)"><Bookmark size={16} /></button>
       <button className={e.tool} onClick={props.undo} disabled={!props.canUndo} title="Desfazer (Ctrl+Z)"><Undo2 size={16} /></button>
       <button className={e.tool} onClick={props.redo} disabled={!props.canRedo} title="Refazer (Ctrl+Shift+Z)"><Redo2 size={16} /></button>
       <span className={e.grow} />
-      <button className={`${e.tool} ${snap ? e.toolOn : ''}`} onClick={() => setSnap(!snap)} aria-pressed={snap} title="Ímã: gruda nos cortes e na agulha"><Magnet size={16} /></button>
+      <button className={`${e.tool} ${props.insertMode ? e.toolOn : ''}`} onClick={() => props.setInsertMode(!props.insertMode)} aria-pressed={props.insertMode} title="Inserir empurrando: mídia nova abre espaço e empurra o resto para a direita"><ArrowRightToLine size={16} />Inserir</button>
+      <button className={`${e.tool} ${snap ? e.toolOn : ''}`} onClick={() => setSnap(!snap)} aria-pressed={snap} title="Ímã: gruda nos cortes, marcadores e agulha"><Magnet size={16} /></button>
       <span className={e.zoom}><ZoomOut size={15} /><input type="range" min={15} max={300} value={pps} onChange={ev => setPps(+ev.target.value)} aria-label="Zoom da linha do tempo" /><ZoomIn size={15} /></span>
     </div>
     <div className={e.tlScroll} ref={scroll}>
-      <div className={e.tlInner} style={{ width: HEAD + width }}>
+      <div className={e.tlInner} style={{ width: HEAD + width }} ref={inner}>
         <div className={e.rulerRow}>
           <div className={e.corner} />
-          <div className={e.ruler} onPointerDown={scrub}><Ruler pps={pps} width={width} /></div>
+          <div className={e.ruler} onPointerDown={scrub}>
+            <Ruler pps={pps} width={width} />
+            {(project.markers ?? []).map(m => <button key={m} className={e.marker} style={{ left: m * ppf }} title={`Marcador em ${timecode(m)} · clique duplo remove`}
+              onPointerDown={ev => { ev.stopPropagation(); seek(m) }} onDoubleClick={() => apply(p => toggleMarker(p, m))}><Bookmark size={11} /></button>)}
+          </div>
         </div>
-        {project.tracks.map((t: Track) => {
+        {project.tracks.map((t: Track, index) => {
           const Icon = kindIcon[t.kind]
           counts[t.kind] = (counts[t.kind] ?? 0) + 1
           const sound = t.kind === 'video' || t.kind === 'audio'
+          const cuts = visualKinds.includes(t.kind) ? t.clips.slice(1).map((b, i) => ({ a: t.clips[i], b })).filter(({ a, b }) => Math.abs(clipEnd(a) - b.start) <= 1) : []
           return <div key={t.id} className={e.row}>
             <div className={e.head}>
+              <span className={e.grip} onPointerDown={ev => dragTrack(ev, index)} title="Arraste para mudar a ordem das faixas"><GripVertical size={13} /></span>
               <Icon size={15} /><span>{kindLabel[t.kind]} {counts[t.kind]}</span>
+              <button className={`${e.mini} ${t.locked ? e.miniOn : ''}`} onClick={() => apply(p => updateTrack(p, t.id, { locked: !t.locked }))} aria-label={t.locked ? 'Destravar faixa' : 'Travar faixa'} title={t.locked ? 'Destravar faixa' : 'Travar faixa'}>{t.locked ? <Lock size={13} /> : <LockOpen size={13} />}</button>
               {sound ? <button className={e.mini} onClick={() => apply(p => updateTrack(p, t.id, { muted: !t.muted }))} aria-label={t.muted ? 'Ativar som' : 'Silenciar'}>{t.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}</button>
                 : <button className={e.mini} onClick={() => apply(p => updateTrack(p, t.id, { hidden: !t.hidden }))} aria-label={t.hidden ? 'Mostrar faixa' : 'Ocultar faixa'}>{t.hidden ? <EyeOff size={14} /> : <Eye size={14} />}</button>}
             </div>
-            <div className={`${e.lane} ${t.hidden || t.muted ? e.laneOff : ''}`} data-track-id={t.id} onPointerDown={ev => { if (ev.target === ev.currentTarget) { onSelect(null); seek(frameAt(ev.clientX, ev.currentTarget)) } }} onDragOver={allowDrop} onDrop={ev => drop(ev, t.id)}>
-              {t.clips.map(c => <ClipView key={c.id} clip={c} kind={t.kind} ppf={ppf} on={selectedIds.includes(c.id)} onDrag={dragClip} onSeek={seek} />)}
+            <div className={`${e.lane} ${t.hidden || t.muted ? e.laneOff : ''} ${t.locked ? e.laneLocked : ''}`} data-track-id={t.id} onPointerDown={laneDown} onDragOver={allowDrop} onDrop={ev => drop(ev, t.id)}>
+              {t.clips.map(c => <ClipView key={c.id} clip={c} kind={t.kind} ppf={ppf} on={selectedIds.includes(c.id)} onDrag={dragClip} onSeek={seek} project={project} voices={voices} />)}
+              {!t.locked && cuts.map(({ a, b }) => {
+                const both = a.props.transOut && b.props.transIn ? b.props.transIn.type : undefined
+                return <button key={b.id} className={`${e.cut} ${both ? e.cutOn : ''}`} style={{ left: b.start * ppf }} title="Transição no corte"
+                  onPointerDown={ev => { ev.stopPropagation(); const r = ev.currentTarget.getBoundingClientRect(), box = inner.current!.getBoundingClientRect(); setCutMenu({ a: a.id, b: b.id, x: r.left - box.left, y: r.bottom - box.top + 4, current: both }) }}><Sparkle size={11} /></button>
+              })}
             </div>
           </div>
         })}
@@ -157,6 +237,12 @@ export function Timeline(props: Props) {
           </div>
         </div>
         {guide !== null && <span className={e.guide} style={{ left: HEAD + guide * ppf }} />}
+        {marquee && <span className={e.marquee} style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />}
+        {cutMenu && <div className={e.cutMenu} style={{ left: cutMenu.x, top: cutMenu.y }} role="menu">
+          <b>Transição no corte</b>
+          {cutTypes.map(c => <button key={c.id} role="menuitem" className={cutMenu.current === c.id ? e.segOn : ''} onClick={() => setCut(cutMenu, c.id)}>{c.label}</button>)}
+          <button role="menuitem" onClick={() => setCut(cutMenu, null)}>Nenhuma</button>
+        </div>}
         <Playhead frames={frames} ppf={ppf} scroll={scroll} playing={playing} />
       </div>
     </div>

@@ -15,6 +15,7 @@ export const aiExamples = [
   'Acelera o vídeo para 2x',
   'Deixa o vídeo preto e branco',
   'Coloca fade em tudo',
+  'Abaixa a trilha quando eu falar',
 ]
 
 const num = (s: string) => parseFloat(s.replace(',', '.'))
@@ -86,6 +87,10 @@ export function runCommand(p: Project, input: string, frame: number): AiResult {
     const clips = p.tracks.filter(t => visualKinds.includes(t.kind)).flatMap(t => t.clips)
     const t = { type, frames: 9 }
     return { project: clips.reduce((acc, c) => updateProps(acc, c.id, { transIn: t, transOut: t }), p), reply: `Coloquei transição ${type} na entrada e na saída de ${clips.length} clipes.` }
+  }
+
+  if (/(abaixa|baixa|diminui).*(trilha|música|musica).*(fala|narra)/.test(low)) {
+    return { project: { ...p, ducking: { on: true, level: 0.3 } }, reply: 'Pronto: a trilha cai para 30% sempre que tiver narração.' }
   }
 
   return { reply: 'Nesta demonstração eu entendo pedidos como: ' + aiExamples.map(x => `“${x}”`).join(', ') + '. Na próxima fase a IA de verdade entra aqui, usando as mesmas ações da linha do tempo.' }

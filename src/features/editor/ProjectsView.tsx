@@ -10,6 +10,7 @@ import { EditorComposition } from './remotion/Composition'
 import { sampleProjects } from './project/data'
 import { projectDuration } from './project/ops'
 import { readSaved } from './project/useEditor'
+import { templates } from './project/templates'
 import { FPS, canvasSize, type Project } from './project/types'
 import { timecode } from './timeline/Timeline'
 import s from '@/components/ui.module.css'
@@ -24,11 +25,20 @@ export function ProjectsView() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setProjects(merged.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
   }, [])
-  const create = () => router.push(`/editor/p-${Date.now().toString(36)}`)
+  const create = (modelo?: string) => router.push(`/editor/p-${Date.now().toString(36)}${modelo ? `?modelo=${modelo}` : ''}`)
   return <section className={s.content}>
-    <div className={s.pageHead}><div><h1>Editor</h1><p>Monte vídeos com linha do tempo e peça edições para a IA.</p></div><button className={s.primary} onClick={create}><Plus size={16} />Novo projeto</button></div>
+    <div className={s.pageHead}><div><h1>Editor</h1><p>Monte vídeos com linha do tempo e peça edições para a IA.</p></div><button className={s.primary} onClick={() => create()}><Plus size={16} />Novo projeto</button></div>
+    <h2 className={e.sectionTitle}>Começar com um modelo</h2>
+    <div className={e.templateGrid}>{templates.map(t => {
+      const [w, h] = t.format.split(':').map(Number)
+      return <button key={t.id} className={e.templateCard} onClick={() => create(t.id === 'branco' ? undefined : t.id)}>
+        <span className={e.ratio} style={{ width: w > h ? 44 : w === h ? 34 : 26, height: w > h ? 26 : w === h ? 34 : 44 }}>{t.format}</span>
+        <span><b>{t.label}</b><small>{t.description}</small></span>
+      </button>
+    })}</div>
+    <h2 className={e.sectionTitle}>Seus projetos</h2>
     <div className={e.projectGrid}>
-      <button className={e.newProject} onClick={create}><Plus size={22} />Novo projeto</button>
+      <button className={e.newProject} onClick={() => create()}><Plus size={22} />Novo projeto</button>
       {projects.map(p => {
         const { width, height } = canvasSize[p.format]
         const d = projectDuration(p)

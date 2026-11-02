@@ -178,3 +178,33 @@ export function setSpeed(p: Project, id: string, speed: number): Project {
   const duration = Math.max(MIN_CLIP, Math.min(maxDuration(found.track.kind, next), Math.round(found.clip.duration * old / speed)))
   return settle(mapClip(p, id, c => ({ ...c, speed, duration })), id)
 }
+
+/**
+ * Adds a clip at the cut nearest to `at` on the first track of its kind and pushes the later clips right,
+ * like inserting on CapCut's main track. Falls back to addClip when there is no track of that kind.
+ */
+export function insertClip(p: Project, kind: TrackKind, clip: Omit<Clip, 'id'>, at: number, trackId?: string): { project: Project; id: string } {
+  const track = p.tracks.find(t => t.id === trackId && t.kind === kind) ?? p.tracks.find(t => t.kind === kind)
+  if (!track) return addClip(p, kind, { ...clip, start: at })
+  const under = track.clips.find(c => at > c.start && at < clipEnd(c))
+  const point = under ? (at - under.start < clipEnd(under) - at ? under.start : clipEnd(under)) : at
+  const id = uid()
+  const shifted = { ...track, clips: [...track.clips.map(c => c.start >= point ? { ...c, start: c.start + clip.duration } : c), { ...clip, id, start: point }] }
+  return { project: normalize(touch({ ...p, tracks: p.tracks.map(t => t === track ? shifted : t) })), id }
+}
+
+export function moveTrack(p: Project, from: number, to: number): Project {
+  if (from === to || to < 0 || to >= p.tracks.length) return p
+  const tracks = [...p.tracks]
+  const [t] = tracks.splice(from, 1)
+  tracks.splice(to, 0, t)
+  return touch({ ...p, tracks })
+}
+
+export const isLocked = (p: Project, clipId: string) => !!findClip(p, clipId)?.track.locked
+
+export function toggleMarker(p: Project, frame: number): Project {
+  const list = p.markers ?? []
+  const near = list.find(m => Math.abs(m - frame) <= 2)
+  return touch({ ...p, markers: near !== undefined ? list.filter(m => m !== near) : [...list, frame].sort((a, b) => a - b) })
+}

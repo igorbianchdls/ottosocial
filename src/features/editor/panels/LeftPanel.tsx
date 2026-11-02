@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Film, Image as ImageIcon, Music, Plus, Send, Shapes, Sparkles, Type } from 'lucide-react'
+import { Film, Image as ImageIcon, Music, Plus, Send, Shapes, Smile, Sparkles, Type } from 'lucide-react'
 import { formatDuration } from '@/lib/format'
-import { mediaLibrary, shapePresets, textPresets, type MediaItem } from '../project/data'
+import { mediaLibrary, shapePresets, stickerProps, stickers, textPresets, type MediaItem } from '../project/data'
 import { aiExamples } from '../ai/commands'
 import { MEDIA_MIME } from '../timeline/Timeline'
+import { fonts } from '../remotion/animate'
 import type { ClipProps, TrackKind } from '../project/types'
 import e from '../editor.module.css'
 
-type Tab = 'midia' | 'texto' | 'formas' | 'audio' | 'ia'
+type Tab = 'midia' | 'texto' | 'stickers' | 'formas' | 'audio' | 'ia'
 export type ChatMessage = { from: 'voce' | 'ia'; text: string }
 
 type Props = {
@@ -19,7 +20,7 @@ type Props = {
 }
 
 const tabs: { id: Tab; label: string; Icon: typeof Film }[] = [
-  { id: 'midia', label: 'Mídia', Icon: Film }, { id: 'texto', label: 'Texto', Icon: Type }, { id: 'formas', label: 'Formas', Icon: Shapes },
+  { id: 'midia', label: 'Mídia', Icon: Film }, { id: 'texto', label: 'Texto', Icon: Type }, { id: 'stickers', label: 'Stickers', Icon: Smile }, { id: 'formas', label: 'Formas', Icon: Shapes },
   { id: 'audio', label: 'Áudio', Icon: Music }, { id: 'ia', label: 'IA', Icon: Sparkles },
 ]
 
@@ -37,17 +38,24 @@ export function LeftPanel({ onAddMedia, onAddPreset, chat, onAsk }: Props) {
         <div className={e.list}>{mediaLibrary.filter(m => m.kind === 'audio').map(m => <MediaRow key={m.id} m={m} onAdd={onAddMedia} />)}</div>
       </>}
       {tab === 'texto' && <div className={e.presets}>{textPresets.map(t => <button key={t.label} className={e.preset} onClick={() => onAddPreset(t.kind, t.props, t.seconds)}>
-        <span className={e.presetSample} style={{ color: t.props.color, background: t.props.bg ?? (t.kind === 'legenda' ? '#111827' : '#1f2937'), fontWeight: t.props.weight }}>{t.kind === 'legenda' ? <><b style={{ color: '#facc15' }}>Legenda</b> animada</> : t.label}</span>
-        <small>{t.kind === 'legenda' ? 'Palavra por palavra' : t.props.anim === 'digitar' ? 'Efeito digitando' : t.props.anim === 'pop' ? 'Entra com pop' : 'Surge de baixo'}</small>
+        <span className={e.presetSample} style={{ color: t.props.color, background: t.props.bg ?? (t.kind === 'legenda' ? '#111827' : '#1f2937'), fontWeight: t.props.weight, fontFamily: fonts[t.props.font ?? 'geist'].family, fontSize: t.props.font === 'bebas' ? 20 : undefined }}>{t.kind === 'legenda' ? <><b style={{ color: '#facc15' }}>Legenda</b> animada</> : t.label}</span>
+        <small>{presetHint(t.kind, t.props)}</small>
       </button>)}</div>}
-      {tab === 'formas' && <div className={e.presets}>{shapePresets.map(s => <button key={s.label} className={e.preset} onClick={() => onAddPreset('forma', s.props, 3)}>
-        <span className={e.presetShape}><i style={{ background: s.props.bg, borderRadius: s.props.shape === 'circulo' ? '50%' : 6, width: s.label === 'Faixa' ? '100%' : 46, height: s.label === 'Faixa' ? 18 : 46, opacity: s.props.opacity }} /></span>
+      {tab === 'stickers' && <>
+        <p className={e.hint}>Clique para pôr na agulha. Pulsam por padrão; troque para “Balançar” em Animação do texto.</p>
+        <div className={e.stickerGrid}>{stickers.map(s => <button key={s} onClick={() => onAddPreset('texto', stickerProps(s), 2)} aria-label={`Sticker ${s}`}>{s}</button>)}</div>
+      </>}
+      {tab === 'formas' && <div className={e.presets}>{shapePresets.map(s => <button key={s.label} className={e.preset} onClick={() => onAddPreset('forma', s.props, s.full ? 0 : 3)}>
+        <span className={e.presetShape}><i style={{ background: s.props.bg, borderRadius: s.props.shape === 'circulo' ? '50%' : 6, width: s.label === 'Faixa' || s.full ? '100%' : 46, height: s.label === 'Faixa' ? 18 : s.full ? 6 : 46, opacity: s.props.opacity }} /></span>
         <small>{s.label}</small>
       </button>)}</div>}
       {tab === 'ia' && <AiChat chat={chat} onAsk={onAsk} />}
     </div>
   </aside>
 }
+
+const presetHint = (kind: TrackKind, p: ClipProps) =>
+  kind === 'legenda' ? 'Palavra por palavra' : p.anim === 'digitar' ? 'Efeito digitando' : p.anim === 'pop' ? 'Entra com pop' : p.anim === 'pulsar' ? 'Pulsa' : p.transIn?.type === 'deslizar' ? 'Desliza para dentro' : 'Surge de baixo'
 
 const dragStart = (ev: React.DragEvent, m: MediaItem) => { ev.dataTransfer.setData(MEDIA_MIME, m.id); ev.dataTransfer.effectAllowed = 'copy' }
 
