@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { supabaseConfigured } from '@/lib/supabase/env'
 import { setRemoteSaver, updateSettings, type Settings } from '../settings/store'
 import { setAccount } from './account'
+import { connectDrive } from '../spaces/store'
 
 /**
  * Loads the signed-in person's profile and workspace from Supabase into the app,
@@ -27,6 +28,7 @@ export function AccountSync() {
       if (cancelled) return
       const ws = (member?.workspaces ?? null) as unknown as { id: string; name: string; timezone: string; language: string } | null
       setAccount({ userId: user.id, email: user.email ?? '', workspaceId: ws?.id ?? null, role: member?.role ?? null })
+      if (ws) void connectDrive({ ws: ws.id, user: user.id })
       if (profile) updateSettings('profile', { name: profile.name, role: profile.role, color: profile.color }, { fromServer: true })
       if (ws) updateSettings('workspace', { name: ws.name, timezone: ws.timezone, language: ws.language }, { fromServer: true })
 

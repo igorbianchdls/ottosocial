@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react'
 import { ChevronsRight, FolderOpen, FolderPlus, MoreVertical, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { formatDate, formatSize } from '@/lib/format'
 import { STORAGE_LIMIT } from './data'
-import { createSpace, deleteSpace, liveFiles, renameSpace, spaceStats } from './store'
-import { useDrive } from './hooks'
+import { createSpace, deleteSpace, liveFiles, reloadDrive, renameSpace, spaceStats } from './store'
+import { useDrive, useDriveStatus } from './hooks'
 import { Thumb } from './Thumb'
 import { ContextMenu, NameDialog, type MenuState } from './drive/ui'
 import s from '@/components/ui.module.css'
@@ -16,6 +16,7 @@ import d from './drive/drive.module.css'
 export function SpacesView() {
   const router = useRouter()
   const drive = useDrive()
+  const status = useDriveStatus()
   const [q, setQ] = useState('')
   const [hover, setHover] = useState<string | null>(null)
   const [menu, setMenu] = useState<MenuState>(null)
@@ -59,7 +60,10 @@ export function SpacesView() {
         })}
         <button className={s.newFolder} onClick={() => setNaming({ name: 'Novo space' })}><FolderPlus size={24} strokeWidth={1.6} />Novo space</button>
       </div>
-      {!visible.length && <p className={s.empty}>Nenhum space com esse nome.</p>}
+      {status === 'loading' || status === 'idle' ? <p className={s.empty} role="status">Carregando seus spaces…</p>
+        : status === 'error' ? <p className={s.empty} role="alert">Não foi possível carregar seus spaces. <button className={s.link} onClick={() => void reloadDrive()}>Tentar de novo</button></p>
+        : !drive.spaces.length ? <p className={s.empty}>Você ainda não tem spaces. Crie um para cada marca ou projeto e envie seus vídeos e imagens.</p>
+        : !visible.length && <p className={s.empty}>Nenhum space com esse nome.</p>}
     </section>
     <aside className={s.info} aria-label="Informações">
       <div className={s.infoHead}><h2>Armazenamento</h2><button className={s.iconBtn} aria-label="Fechar painel"><ChevronsRight size={18} /></button></div>

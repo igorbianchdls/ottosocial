@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Clapperboard, Download, Send, Star, Trash2, X } from 'lucide-react'
 import { formatDateTime, formatDuration, formatSize } from '@/lib/format'
-import { getBlob } from '../blobs'
 import { folderLabel, type DFile } from '../store'
-import { useBlobUrl, useDrive } from '../hooks'
+import { readText, useDrive, useFileUrl } from '../hooks'
 import { Thumb } from '../Thumb'
 import d from './drive.module.css'
 
@@ -65,17 +64,17 @@ export function Viewer({ files, index, onIndex, onClose, ...act }: Props) {
 }
 
 function Content({ file }: { file: DFile }) {
-  const url = useBlobUrl(file.id, !!file.uploaded)
-  const [text, setText] = useState<string | null>(null)
+  const url = useFileUrl(file, !!file.uploaded && file.kind !== 'text')?.url
+  const [text, setText] = useState<{ id: string; text: string } | null>(null)
   useEffect(() => {
     if (!file.uploaded || file.kind !== 'text') return
     let live = true
-    getBlob(file.id).then(b => b?.text()).then(t => { if (live && t !== undefined) setText(t.slice(0, 20000)) })
+    readText(file).then(t => { if (live && t !== undefined) setText({ id: file.id, text: t }) })
     return () => { live = false }
-  }, [file.id, file.uploaded, file.kind])
+  }, [file])
   if (url && file.kind === 'image') return <img src={url} alt={file.name} className={d.viewerMedia} /> // eslint-disable-line @next/next/no-img-element
   if (url && file.kind === 'video') return <video src={url} controls autoPlay className={d.viewerMedia} />
   if (url && file.kind === 'audio') return <audio src={url} controls autoPlay />
-  if (text !== null) return <pre className={d.viewerText}>{text}</pre>
+  if (text?.id === file.id) return <pre className={d.viewerText}>{text.text}</pre>
   return <Thumb file={file} className={d.viewerThumb} showKind={false} />
 }

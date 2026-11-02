@@ -5,8 +5,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Clapperboard, Copy, Download, Eye, FolderInput, FolderOpen, FolderPlus, FolderUp, Pencil, RotateCcw, Send, Star, StarOff, Trash2, Upload } from 'lucide-react'
 import { downloadBlob } from '../blobs'
+import { downloadObject, onRemoteError } from '../remote'
 import { notify } from '@/features/notifications/store'
-import { createFolder, deleteForever, duplicateFiles, emptyTrash, getDrive, isFavorite, markOpened, moveItems, rename, restoreItems, setFavorite, trashItems, uploadFiles, type DFile, type Item } from '../store'
+import { createFolder, deleteForever, remoteDrive, duplicateFiles, emptyTrash, getDrive, isFavorite, markOpened, moveItems, rename, restoreItems, setFavorite, trashItems, uploadFiles, type DFile, type Item } from '../store'
 import { useDrive } from '../hooks'
 import { ConfirmDialog, ContextMenu, MoveDialog, NameDialog, type MenuItem, type MenuState } from './ui'
 import { Viewer } from './Viewer'
@@ -35,6 +36,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
   const folderInput = useRef<HTMLInputElement>(null)
   const uploadTarget = useRef<{ spaceId: string; folderId: string | null }>({ spaceId: '', folderId: null })
 
+  useEffect(() => onRemoteError(() => setToast('Não foi possível salvar a última mudança. Atualizando a lista…')), [])
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2800); return () => clearTimeout(t) }, [toast])
   // webkitdirectory isn't in React's input props.
   useEffect(() => { folderInput.current?.setAttribute('webkitdirectory', '') }, [])
@@ -48,7 +50,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
       setToast(`${ids.length} ${ids.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}.`)
       notify({ kind: 'arquivos', title: `${ids.length} ${ids.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}`, text: list.slice(0, 3).map(f => f.name).join(', ') + (list.length > 3 ? '…' : ''), href: folderId ? `/pastas/${folderId}` : `/spaces/${spaceId}`, action: 'Abrir pasta' })
     } catch {
-      setToast('Não foi possível enviar. O navegador pode estar sem espaço.')
+      setToast(remoteDrive ? 'Não foi possível enviar. Confira sua conexão e tente de novo.' : 'Não foi possível enviar. O navegador pode estar sem espaço.')
     } finally { setUploading(n => Math.max(0, n - list.length)) }
   }, [])
 
@@ -66,7 +68,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
 
   const download = async (list: DFile[]) => {
     let got = 0
-    for (const f of list) if (f.uploaded && await downloadBlob(f.id, f.name)) got++
+    for (const f of list) if (f.uploaded && await (remoteDrive ? !!f.storagePath && downloadObject(f.storagePath, f.name) : downloadBlob(f.id, f.name))) got++
     setToast(got ? `Baixando ${got} ${got === 1 ? 'arquivo' : 'arquivos'}.` : 'Arquivos de exemplo não têm conteúdo para baixar.')
   }
   const post = (list: DFile[]) => { const ok = list.filter(f => f.kind === 'video' || f.kind === 'image'); if (ok.length) router.push(`/postar?arquivos=${ok.map(f => f.id).join(',')}`) }

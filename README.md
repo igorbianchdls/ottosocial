@@ -84,3 +84,9 @@ Para aplicar: Supabase → SQL Editor → colar os arquivos em ordem → Run (ou
 Login, cadastro, "esqueci a senha" e sair usam o Supabase Auth (`src/lib/supabase`). O `src/proxy.ts` mantém a sessão nos cookies e manda quem não entrou para `/login` (ou `/apresentacao`, na raiz). Links dos e-mails do Supabase voltam por `/auth/callback`; a senha nova é criada em `/nova-senha`. Sem as variáveis `NEXT_PUBLIC_SUPABASE_*` o app roda como demonstração, sem login.
 
 Copie `.env.example` para `.env.local` e preencha a chave publicável do projeto.
+
+### Spaces no Supabase
+
+Com login, Spaces lê e grava no banco (`src/features/spaces/remote.ts`): spaces, pastas, arquivos, lixeira, favoritos e recentes. A tela atualiza na hora e salva em segundo plano, em ordem; se algo falhar, aparece um aviso e a lista é recarregada do banco. Os arquivos vão para o bucket privado `media` em `<workspace>/<arquivo>/<nome>`, e a miniatura (`thumb.jpg`) é feita no navegador no envio. Para abrir, o app pede links temporários (1 hora). Ao voltar para a aba, a lista é atualizada para mostrar o que a equipe mudou. Sem as variáveis do Supabase, Spaces continua como demonstração no navegador.
+
+A versão leve dos vídeos para o editor (`proxy.mp4`) ainda não é gerada: a tarefa fica na fila `file_jobs` esperando um worker.

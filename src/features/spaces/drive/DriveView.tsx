@@ -8,7 +8,7 @@ import { Calendar, ChevronDown, ChevronRight, FolderClosed, FolderPlus, FolderUp
 import { formatDate, formatDateTime, formatDuration, formatSize } from '@/lib/format'
 import { tagTone, STORAGE_LIMIT } from '../data'
 import { childFiles, childFolders, descendants, folderPath, folderStats, getDrive, itemKey, liveFiles, moveItems, spaceStats, type DFile, type DFolder, type Item } from '../store'
-import { useDrive } from '../hooks'
+import { useDrive, useDriveStatus } from '../hooks'
 import { Thumb } from '../Thumb'
 import { Browser, ITEMS_MIME, modifiedOf, type Sort } from './Browser'
 import { useDriveActions } from './actions'
@@ -48,6 +48,7 @@ export function useViewMode() {
 
 export function DriveView({ spaceId, folderId, openFileId }: { spaceId?: string; folderId: string | null; openFileId?: string }) {
   const drive = useDrive()
+  const status = useDriveStatus()
   const folder = folderId ? drive.folders.find(f => f.id === folderId) : undefined
   const space = drive.spaces.find(x => x.id === (folder?.spaceId ?? spaceId))
   const act = useDriveActions(space ? { spaceId: space.id, folderId: folder?.id ?? null } : undefined)
@@ -118,6 +119,7 @@ export function DriveView({ spaceId, folderId, openFileId }: { spaceId?: string;
     return () => window.removeEventListener('keydown', key)
   })
 
+  if (status !== 'ready' && (!space || (folderId && !folder))) return <section className={s.content}><p className={s.empty} role="status">{status === 'error' ? 'Não foi possível carregar. Recarregue a página.' : 'Carregando…'}</p></section>
   if (!space) return <section className={s.content}><p className={s.empty}>Este space não existe mais. <Link href="/spaces" className={s.link}>Ver spaces</Link></p></section>
   if (folderId && (!folder || folder.trashedAt)) return <section className={s.content}><p className={s.empty}>{folder ? 'Esta pasta está na lixeira.' : 'Pasta não encontrada.'} <Link href={folder ? '/spaces/lixeira' : `/spaces/${space.id}`} className={s.link}>{folder ? 'Abrir lixeira' : 'Voltar ao space'}</Link></p></section>
 
