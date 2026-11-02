@@ -11,7 +11,7 @@ import { LeftPanel, type ChatMessage } from './panels/LeftPanel'
 import { Properties } from './panels/Properties'
 import { runCommand } from './ai/commands'
 import { defaultBox, fullBox, media, type MediaItem } from './project/data'
-import { addClip, clipEnd, duplicateClip, insertClip, isLocked, projectDuration, removeClips, rippleDelete, splitAt, toggleMarker } from './project/ops'
+import { addClip, clipEnd, duplicateClip, groupClips, insertClip, isLocked, projectDuration, removeClips, rippleDelete, splitAt, toggleMarker, ungroupClips, withGroup } from './project/ops'
 import { listVersions, saveVersion, type Version } from './project/versions'
 import { copyClips, pasteClips, type ClipboardItem } from './project/clipboard'
 import { createFrameStore, useEditor } from './project/useEditor'
@@ -22,6 +22,9 @@ export function EditorView({ initial }: { initial: Project }) {
   const { project, apply, transient, commit, undo, redo, canUndo, canRedo } = useEditor(initial)
   const [selection, setSelection] = useState<string[]>([])
   const [insertMode, setInsertMode] = useState(false)
+  const [loop, setLoop] = useState<{ start: number; end: number } | null>(null)
+  const [rate, setRate] = useState(1)
+  const [pane, setPane] = useState<'ferramentas' | 'propriedades'>('ferramentas')
   const [versions, setVersions] = useState<Version[] | null>(null)
   const clipboard = useRef<ClipboardItem[]>([])
   const [playing, setPlaying] = useState(false)
@@ -36,7 +39,30 @@ export function EditorView({ initial }: { initial: Project }) {
     frames.set(frame)
     playerRef.current?.seekTo(frame)
   }, [duration, frames])
-  const toggle = useCallback(() => playerRef.current?.toggle(), [])
+  const toggle = useCallback(() => { setRate(1); playerRef.current?.toggle() }, [])
+  const fullscreen = useCallback(() => playerRef.current?.requestFullscreen(), [])
+
+  /** Loops between the markers around the playhead, or the whole video when there are none. */
+  const toggleLoop = useCallback(() => {
+    if (loop) return setLoop(null)
+    const f = frames.get(), marks = project.markers ?? []
+    setLoop({ start: [...marks].reverse().find(m => m <= f) ?? 0, end: marks.find(m => m > f) ?? duration })
+  }, [loop, frames, project.markers, duration])
+  useEffect(() => {
+    if (!loop) return
+    return frames.subscribe(() => {
+      const f = frames.get()
+      if (playing && (f >= loop.end - 1 || f < loop.start)) playerRef.current?.seekTo(loop.start)
+    })
+  }, [loop, playing, frames])
+  // Player stops at the end of the video; while looping the whole video, start again.
+  useEffect(() => {
+    const pl = playerRef.current
+    if (!pl || !loop) return
+    const again = () => { pl.seekTo(loop.start); pl.play() }
+    pl.addEventListener('ended', again)
+    return () => pl.removeEventListener('ended', again)
+  }, [loop])
 
   const addMedia = useCallback((m: MediaItem, frame = frames.get(), trackId?: string) => {
     const kind: TrackKind = m.kind
@@ -58,10 +84,13 @@ export function EditorView({ initial }: { initial: Project }) {
   // Ids that still exist (undo can remove a selected clip).
   const allIds = useMemo(() => new Set(project.tracks.flatMap(t => t.clips.map(c => c.id))), [project])
   const selected = useMemo(() => selection.filter(id => allIds.has(id)), [selection, allIds])
+  /** Selecting a grouped clip selects the whole group. */
   const select = useCallback((id: string | null, toggleIt = false) => {
     if (!id) return setSelection([])
-    setSelection(s => toggleIt ? (s.includes(id) ? s.filter(x => x !== id) : [...s, id]) : [id])
-  }, [])
+    const ids = withGroup(project, id)
+    if (window.matchMedia('(max-width: 960px)').matches) setPane('propriedades')
+    setSelection(s => toggleIt ? (ids.every(x => s.includes(x)) ? s.filter(x => !ids.includes(x)) : [...new Set([...s, ...ids])]) : ids)
+  }, [project])
 
   const split = useCallback(() => {
     if (selected.length !== 1) return
@@ -97,6 +126,9 @@ export function EditorView({ initial }: { initial: Project }) {
     }
   }, [apply, project, selected])
 
+  const group = useCallback(() => { if (editable.length > 1) { apply(p => groupClips(p, editable)); setToast('Clipes agrupados. Ctrl+Shift+G desagrupa.') } }, [apply, editable])
+  const ungroup = useCallback(() => { if (selected.length) apply(p => ungroupClips(p, selected)) }, [apply, selected])
+
   const ask = (text: string) => {
     const r = runCommand(project, text, frames.get())
     if (r.project) { const next = r.project; apply(() => next) }
@@ -121,10 +153,24 @@ export function EditorView({ initial }: { initial: Project }) {
       else if (!mod && ev.key.toLowerCase() === 'm') apply(p => toggleMarker(p, frames.get()))
       else if (ev.key === 'Delete' || ev.key === 'Backspace') { if (ev.shiftKey) ripple(); else remove() }
       else if (ev.key === 'Escape') setSelection([])
+      else if (mod && ev.key.toLowerCase() === 'g') { ev.preventDefault(); if (ev.shiftKey) ungroup(); else group() }
+      else if (!mod && ev.key.toLowerCase() === 'f') fullscreen()
+      else if (!mod && ev.key.toLowerCase() === 'k') { playerRef.current?.pause(); setRate(1) }
+      else if (!mod && ev.key.toLowerCase() === 'l') {
+        // Each L speeds up: 1x, 2x, 4x.
+        const pl = playerRef.current
+        if (!pl) return
+        const next = pl.isPlaying() ? Math.min(4, rate * 2) : 1
+        setRate(next)
+        if (!pl.isPlaying()) pl.play()
+      }
+      else if (!mod && ev.key.toLowerCase() === 'j') { playerRef.current?.pause(); setRate(1); seek(frames.get() - FPS) }
+      else if (ev.key === 'Home') seek(0)
+      else if (ev.key === 'End') seek(duration - 1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [toggle, seek, frames, undo, redo, duplicate, split, remove, ripple, copy, paste, allIds, apply])
+  }, [toggle, seek, frames, undo, redo, duplicate, split, remove, ripple, copy, paste, allIds, apply, group, ungroup, fullscreen, rate, duration])
 
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2600); return () => clearTimeout(t) }, [toast])
 
@@ -148,12 +194,13 @@ export function EditorView({ initial }: { initial: Project }) {
       </div>
       <button className={e.export} onClick={() => setToast('A exportação para MP4 entra na próxima fase (Remotion Lambda). O vídeo vai direto para o seu Space.')}><Download size={16} />Exportar</button>
     </header>
-    <div className={e.body}>
+    <div className={`${e.body} ${pane === 'propriedades' ? e.showProps : e.showTools}`}>
+      <div className={e.paneSwitch}><button className={pane === 'ferramentas' ? e.segOn : ''} onClick={() => setPane('ferramentas')}>Ferramentas</button><button className={pane === 'propriedades' ? e.segOn : ''} onClick={() => setPane('propriedades')}>Propriedades</button></div>
       <LeftPanel onAddMedia={m => addMedia(m)} onAddPreset={addPreset} chat={chat} onAsk={ask} />
-      <Preview project={project} playerRef={playerRef} frames={frames} selectedId={selected.length === 1 ? selected[0] : null} onSelect={id => select(id)} transient={transient} commit={commit} onPlaying={setPlaying} />
-      <Properties project={project} selectedIds={selected} frames={frames} apply={apply} seek={seek} onDuplicate={duplicate} onSplit={split} onDelete={remove} onRipple={ripple} onCopy={copy} />
+      <Preview project={project} playerRef={playerRef} frames={frames} selectedId={selected.length === 1 ? selected[0] : null} onSelect={id => select(id)} transient={transient} commit={commit} onPlaying={setPlaying} playbackRate={rate} />
+      <Properties project={project} selectedIds={selected} frames={frames} apply={apply} seek={seek} onDuplicate={duplicate} onSplit={split} onDelete={remove} onRipple={ripple} onCopy={copy} onGroup={group} onUngroup={ungroup} />
     </div>
-    <Timeline project={project} frames={frames} duration={duration} selectedIds={selected} playing={playing} onSelect={select} onSelectMany={setSelection} insertMode={insertMode} setInsertMode={setInsertMode} seek={seek} toggle={toggle}
+    <Timeline project={project} frames={frames} duration={duration} selectedIds={selected} playing={playing} onSelect={select} onSelectMany={setSelection} insertMode={insertMode} setInsertMode={setInsertMode} loop={loop} onToggleLoop={toggleLoop} onFullscreen={fullscreen} rate={rate} seek={seek} toggle={toggle}
       apply={apply} transient={transient} commit={commit} onSplit={split} onDelete={remove} onRipple={ripple} undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
       onDropMedia={(id, frame, trackId) => { const m = media(id); if (m) addMedia(m, frame, trackId) }} />
     {toast && <div className={e.toast} role="status"><Check size={15} />{toast}</div>}

@@ -1,4 +1,5 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
+import { textAt } from '../../project/keyframes'
 import type { Clip } from '../../project/types'
 import { fonts } from '../animate'
 
@@ -7,6 +8,8 @@ export function TextBlock({ clip }: { clip: Clip }) {
   const { fps } = useVideoConfig()
   const p = clip.props
   const text = p.text ?? ''
+  const keyed = textAt(p.keyframes, frame)
+  const color = keyed.color ?? p.color ?? '#fff', fontSize = keyed.fontSize ?? p.fontSize ?? 64
   const pop = spring({ frame, fps, config: { damping: 12, stiffness: 160 } })
   let transform = 'none', opacity = 1, shown = text
   if (p.anim === 'pop') transform = `scale(${0.6 + 0.4 * pop})`
@@ -19,6 +22,6 @@ export function TextBlock({ clip }: { clip: Clip }) {
   const shadow = s > 0 ? `0 ${4 + s * 6}px ${12 + s * 24}px rgba(0,0,0,${0.25 + s * 0.6})` : 'none'
   const justify = p.align === 'left' ? 'flex-start' : p.align === 'right' ? 'flex-end' : 'center'
   return <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: justify, opacity, transform }}>
-    <span style={{ fontFamily: fonts[p.font ?? 'geist'].family, fontSize: p.fontSize ?? 64, fontWeight: p.weight ?? 800, color: p.color ?? '#fff', background: p.bg, padding: p.bg ? '0.18em 0.45em' : 0, borderRadius: 18, lineHeight: 1.15, textAlign: p.align ?? 'center', letterSpacing: p.font === 'bebas' ? '0.02em' : '-0.01em', textShadow: shadow, WebkitTextStroke: p.stroke?.width ? `${p.stroke.width}px ${p.stroke.color}` : undefined, paintOrder: 'stroke fill', whiteSpace: 'pre-wrap' }}>{shown}</span>
+    <span style={{ fontFamily: fonts[p.font ?? 'geist'].family, fontSize, fontWeight: p.weight ?? 800, color, background: p.bg, padding: p.bg ? '0.18em 0.45em' : 0, borderRadius: 18, lineHeight: 1.15, textAlign: p.align ?? 'center', letterSpacing: p.font === 'bebas' ? '0.02em' : '-0.01em', textShadow: shadow, WebkitTextStroke: p.stroke?.width ? `${p.stroke.width}px ${p.stroke.color}` : undefined, paintOrder: 'stroke fill', whiteSpace: 'pre-wrap' }}>{shown}</span>
   </div>
 }

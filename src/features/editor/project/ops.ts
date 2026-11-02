@@ -116,7 +116,7 @@ export const removeClip = (p: Project, id: string) => normalize(touch({ ...p, tr
 export function duplicateClip(p: Project, id: string): { project: Project; id: string } | null {
   const found = findClip(p, id)
   if (!found) return null
-  const copy = { ...found.clip, start: freeStart(found.track, clipEnd(found.clip), found.clip.duration) }
+  const copy = { ...found.clip, group: undefined, start: freeStart(found.track, clipEnd(found.clip), found.clip.duration) }
   return addClip(p, found.track.kind, copy, found.track.id)
 }
 
@@ -207,4 +207,22 @@ export function toggleMarker(p: Project, frame: number): Project {
   const list = p.markers ?? []
   const near = list.find(m => Math.abs(m - frame) <= 2)
   return touch({ ...p, markers: near !== undefined ? list.filter(m => m !== near) : [...list, frame].sort((a, b) => a - b) })
+}
+
+/** Ties clips together: clicking one selects all, and they move as one. */
+export function groupClips(p: Project, ids: string[]): Project {
+  if (ids.length < 2) return p
+  const group = uid('g')
+  return touch({ ...p, tracks: p.tracks.map(t => ({ ...t, clips: t.clips.map(c => ids.includes(c.id) ? { ...c, group } : c) })) })
+}
+
+export function ungroupClips(p: Project, ids: string[]): Project {
+  const groups = new Set(p.tracks.flatMap(t => t.clips.filter(c => ids.includes(c.id) && c.group).map(c => c.group)))
+  return touch({ ...p, tracks: p.tracks.map(t => ({ ...t, clips: t.clips.map(c => c.group && groups.has(c.group) ? { ...c, group: undefined } : c) })) })
+}
+
+/** The clip and every clip grouped with it. */
+export function withGroup(p: Project, id: string): string[] {
+  const c = findClip(p, id)?.clip
+  return c?.group ? p.tracks.flatMap(t => t.clips.filter(x => x.group === c.group).map(x => x.id)) : [id]
 }

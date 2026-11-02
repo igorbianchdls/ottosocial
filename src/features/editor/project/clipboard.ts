@@ -14,7 +14,7 @@ export function pasteClips(p: Project, items: ClipboardItem[], at: number): { pr
   const ids: string[] = []
   let project = p
   for (const { kind, clip } of items) {
-    const r = addClip(project, kind, { ...clip, start: at + clip.start - base })
+    const r = addClip(project, kind, { ...clip, group: undefined, start: at + clip.start - base })
     project = r.project
     ids.push(r.id)
   }

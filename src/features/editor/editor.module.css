@@ -291,3 +291,32 @@
 .templateCard b { font-weight: 600; font-size: 13px; }
 .templateCard small { color: var(--muted); font-size: 12px; }
 .ratio { flex-shrink: 0; display: grid; place-items: center; border-radius: 6px; background: #111827; color: #fff; font-size: 10px; font-weight: 600; }
+
+/* Alignment, guides, loop, playback rate */
+.alignRow { display: inline-flex; gap: 2px; }
+.alignRow button { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; color: var(--text); border: 1px solid var(--line-strong); }
+.alignRow button:hover { background: var(--soft); color: var(--ink); }
+.vGuide, .hGuide { position: absolute; pointer-events: none; background: #f43f5e; z-index: 3; }
+.vGuide { top: 0; bottom: 0; width: 1px; }
+.hGuide { left: 0; right: 0; height: 1px; }
+.loopRange { position: absolute; top: 0; bottom: 0; background: rgb(139 92 246 / .18); border-left: 2px solid #8b5cf6; border-right: 2px solid #8b5cf6; pointer-events: none; }
+.rate { padding: 2px 7px; border-radius: 6px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 700; }
+.paneSwitch { display: none; }
+
+@media (max-width: 960px) {
+  .paneSwitch { display: flex; padding: 8px 12px; gap: 4px; border-top: 1px solid var(--line); }
+  .paneSwitch button { flex: 1; height: 34px; border-radius: 9px; border: 1px solid var(--line-strong); color: var(--muted); font-weight: 600; }
+  .paneSwitch .segOn { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .showTools .props, .showProps .left { display: none; }
+  .left, .props { max-height: 420px; }
+  .editor { grid-template-rows: 56px auto 320px; }
+  .head { width: 92px; }
+  .corner { width: 92px; }
+  .head > span:not(.grip) { display: none; }
+  .head .mini:first-of-type { display: none; }
+  .row { height: 52px; }
+  .clip { border-radius: 9px; }
+  .edge { width: 14px; }
+  .versionsBtn { padding: 0 9px; font-size: 0; gap: 0; }
+  .export { padding: 0 11px; }
+}

@@ -20,8 +20,29 @@ export function motionAt(keyframes: Keyframe[] | undefined, frame: number): Moti
   return Object.fromEntries(keys.map(k => [k, a[k] + (b[k] - a[k]) * t])) as Motion
 }
 
+const hex = (c: string) => { const h = c.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map(x => x + x).join('') : h.slice(0, 6), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255] }
+const mixColor = (a: string, b: string, t: number) => {
+  if (!a.startsWith('#') || !b.startsWith('#')) return t < 0.5 ? a : b
+  const [x, y] = [hex(a), hex(b)]
+  return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`
+}
+
+/** Text color and size at `frame`, from the keyframes that set them; undefined when none do. */
+export function textAt(keyframes: Keyframe[] | undefined, frame: number): { color?: string; fontSize?: number } {
+  const pick = <K extends 'color' | 'fontSize'>(k: K) => {
+    const list = (keyframes ?? []).filter(x => x[k] !== undefined).sort((a, b) => a.frame - b.frame)
+    if (!list.length) return undefined
+    const before = [...list].reverse().find(x => x.frame <= frame), after = list.find(x => x.frame > frame)
+    if (!before) return list[0][k]
+    if (!after) return before[k]
+    const t = ease((frame - before.frame) / (after.frame - before.frame))
+    return (k === 'color' ? mixColor(before.color!, after.color!, t) : before.fontSize! + (after.fontSize! - before.fontSize!) * t) as Keyframe[K]
+  }
+  return { color: pick('color'), fontSize: pick('fontSize') }
+}
+
 /** Sets values at `frame`: updates the keyframe there or adds one holding the current motion. */
-export function setKeyframe(p: Project, clipId: string, frame: number, patch: Partial<Motion>): Project {
+export function setKeyframe(p: Project, clipId: string, frame: number, patch: Partial<Omit<Keyframe, 'frame'>>): Project {
   return mapClip(p, clipId, c => {
     const list = c.props.keyframes ?? []
     const at = list.find(k => k.frame === frame)

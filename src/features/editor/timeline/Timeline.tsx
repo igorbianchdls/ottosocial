@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRightToLine, BetweenHorizontalStart, Bookmark, Eye, EyeOff, GripVertical, Lock, LockOpen, Magnet, Pause, Play, Redo2, Scissors, SkipBack, SkipForward, Sparkle, Trash2, Undo2, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide-react'
-import { clipEnd, moveClip, moveClipsClamped, moveTrack, settle, settleAll, toggleMarker, trimLeft, trimRight, updateProps, updateTrack } from '../project/ops'
+import { ArrowRightToLine, BetweenHorizontalStart, Bookmark, Expand, Repeat, Eye, EyeOff, GripVertical, Lock, LockOpen, Magnet, Pause, Play, Redo2, Scissors, SkipBack, SkipForward, Sparkle, Trash2, Undo2, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide-react'
+import { clipEnd, moveClip, moveClipsClamped, moveTrack, settle, settleAll, toggleMarker, trimLeft, trimRight, updateProps, updateTrack, withGroup } from '../project/ops'
 import { voiceRanges } from '../project/audio'
 import { ClipView, kindIcon, type DragMode } from './Clip'
 import { useFrame, type FrameStore } from '../project/useEditor'
@@ -10,7 +10,6 @@ import { FPS, kindLabel, visualKinds, type Clip, type Project, type Track, type 
 import e from '../editor.module.css'
 
 export const MEDIA_MIME = 'application/x-ottosocial-media'
-const HEAD = 168
 const ROW = 46
 const SNAP_PX = 8
 
@@ -28,6 +27,7 @@ type Props = {
   onSplit: () => void; onDelete: () => void; onRipple: () => void; undo: () => void; redo: () => void; canUndo: boolean; canRedo: boolean
   onDropMedia: (mediaId: string, frame: number, trackId?: string) => void
   insertMode: boolean; setInsertMode: (on: boolean) => void
+  loop: { start: number; end: number } | null; onToggleLoop: () => void; onFullscreen: () => void; rate: number
 }
 
 type CutMenu = { a: string; b: string; x: number; y: number; current?: TransitionType }
@@ -42,6 +42,27 @@ export function Timeline(props: Props) {
   const [cutMenu, setCutMenu] = useState<CutMenu | null>(null)
   const scroll = useRef<HTMLDivElement>(null)
   const inner = useRef<HTMLDivElement>(null)
+  // Track header width; matches .head in the CSS (narrower on phones).
+  const [HEAD, setHead] = useState(168)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 960px)')
+    const set = () => setHead(mq.matches ? 92 : 168)
+    set()
+    mq.addEventListener('change', set)
+    return () => mq.removeEventListener('change', set)
+  }, [])
+  // Ctrl/Cmd + wheel zooms the timeline (needs a non-passive listener to stop the browser zoom).
+  useEffect(() => {
+    const el = scroll.current
+    if (!el) return
+    const onWheel = (ev: WheelEvent) => {
+      if (!ev.ctrlKey && !ev.metaKey) return
+      ev.preventDefault()
+      setPps(v => Math.max(15, Math.min(300, Math.round(v * (ev.deltaY > 0 ? 0.88 : 1.14)))))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
   const ppf = pps / FPS
   const width = (duration + 10 * FPS) * ppf
   const voices = voiceRanges(project)
@@ -69,8 +90,11 @@ export function Timeline(props: Props) {
     setCutMenu(null)
     if (ev.shiftKey || ev.ctrlKey || ev.metaKey) { onSelect(clip.id, true); return }
     const lockedIds = new Set(project.tracks.filter(t => t.locked).flatMap(t => t.clips.map(c => c.id)))
-    const group = mode === 'move' && selectedIds.includes(clip.id) && selectedIds.length > 1 ? selectedIds.filter(id => !lockedIds.has(id)) : [clip.id]
-    if (!selectedIds.includes(clip.id) || mode !== 'move') onSelect(clip.id)
+    // A grouped clip always drags its whole group; otherwise a selected clip drags the selection.
+    const members = withGroup(project, clip.id)
+    const base = selectedIds.includes(clip.id) && selectedIds.length > 1 ? [...new Set([...selectedIds, ...members])] : members
+    const group = mode === 'move' ? base.filter(id => !lockedIds.has(id)) : [clip.id]
+    if (!selectedIds.includes(clip.id)) onSelect(clip.id)
     if (lockedIds.has(clip.id) || !group.length) return
     const before = project, x0 = ev.clientX
     const el = ev.currentTarget as HTMLElement
@@ -122,6 +146,8 @@ export function Timeline(props: Props) {
   const laneDown = (ev: React.PointerEvent<HTMLDivElement>) => {
     if (ev.target !== ev.currentTarget || ev.button !== 0) return
     setCutMenu(null)
+    // On touch, dragging the empty area scrolls the timeline; a tap moves the playhead.
+    if (ev.pointerType === 'touch') { onSelect(null); seek(frameAt(ev.clientX, ev.currentTarget)); return }
     const box = inner.current!.getBoundingClientRect()
     const x0 = ev.clientX, y0 = ev.clientY, lane = ev.currentTarget
     const additive = ev.shiftKey || ev.ctrlKey || ev.metaKey
@@ -190,6 +216,9 @@ export function Timeline(props: Props) {
       <button className={e.tool} onClick={props.onDelete} disabled={!hasSelection} title="Excluir (Delete)"><Trash2 size={16} /></button>
       <button className={e.tool} onClick={props.onRipple} disabled={!hasSelection} title="Excluir e fechar o buraco (Shift+Delete)"><BetweenHorizontalStart size={16} /></button>
       <button className={e.tool} onClick={() => apply(p => toggleMarker(p, frames.get()))} title="Marcador na agulha (M)"><Bookmark size={16} /></button>
+      <button className={`${e.tool} ${props.loop ? e.toolOn : ''}`} onClick={props.onToggleLoop} aria-pressed={!!props.loop} title="Repetir o trecho entre os marcadores em volta da agulha (sem marcadores, o vídeo todo)"><Repeat size={16} /></button>
+      <button className={e.tool} onClick={props.onFullscreen} title="Prévia em tela cheia (F)"><Expand size={16} /></button>
+      {props.rate !== 1 && <span className={e.rate}>{props.rate}x</span>}
       <button className={e.tool} onClick={props.undo} disabled={!props.canUndo} title="Desfazer (Ctrl+Z)"><Undo2 size={16} /></button>
       <button className={e.tool} onClick={props.redo} disabled={!props.canRedo} title="Refazer (Ctrl+Shift+Z)"><Redo2 size={16} /></button>
       <span className={e.grow} />
@@ -203,6 +232,7 @@ export function Timeline(props: Props) {
           <div className={e.corner} />
           <div className={e.ruler} onPointerDown={scrub}>
             <Ruler pps={pps} width={width} />
+            {props.loop && <span className={e.loopRange} style={{ left: props.loop.start * ppf, width: (props.loop.end - props.loop.start) * ppf }} />}
             {(project.markers ?? []).map(m => <button key={m} className={e.marker} style={{ left: m * ppf }} title={`Marcador em ${timecode(m)} · clique duplo remove`}
               onPointerDown={ev => { ev.stopPropagation(); seek(m) }} onDoubleClick={() => apply(p => toggleMarker(p, m))}><Bookmark size={11} /></button>)}
           </div>
@@ -243,7 +273,7 @@ export function Timeline(props: Props) {
           {cutTypes.map(c => <button key={c.id} role="menuitem" className={cutMenu.current === c.id ? e.segOn : ''} onClick={() => setCut(cutMenu, c.id)}>{c.label}</button>)}
           <button role="menuitem" onClick={() => setCut(cutMenu, null)}>Nenhuma</button>
         </div>}
-        <Playhead frames={frames} ppf={ppf} scroll={scroll} playing={playing} />
+        <Playhead frames={frames} ppf={ppf} scroll={scroll} playing={playing} head={HEAD} />
       </div>
     </div>
   </div>
@@ -254,13 +284,13 @@ function TimeDisplay({ frames, duration }: { frames: FrameStore; duration: numbe
   return <span className={e.time}><b>{timecode(frame)}</b> / {timecode(duration)}</span>
 }
 
-function Playhead({ frames, ppf, scroll, playing }: { frames: FrameStore; ppf: number; scroll: React.RefObject<HTMLDivElement | null>; playing: boolean }) {
+function Playhead({ frames, ppf, scroll, playing, head }: { frames: FrameStore; ppf: number; scroll: React.RefObject<HTMLDivElement | null>; playing: boolean; head: number }) {
   const frame = useFrame(frames)
-  const x = HEAD + frame * ppf
+  const x = head + frame * ppf
   useEffect(() => {
     const el = scroll.current
-    if (playing && el && (x > el.scrollLeft + el.clientWidth - 40 || x < el.scrollLeft + HEAD)) el.scrollTo({ left: x - HEAD - 60 })
-  }, [x, playing, scroll])
+    if (playing && el && (x > el.scrollLeft + el.clientWidth - 40 || x < el.scrollLeft + head)) el.scrollTo({ left: x - head - 60 })
+  }, [x, playing, scroll, head])
   return <span className={e.playhead} style={{ left: x }}><i /></span>
 }
 

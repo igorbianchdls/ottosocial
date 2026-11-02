@@ -13,7 +13,7 @@ import e from '../editor.module.css'
 type Props = {
   project: Project; playerRef: RefObject<PlayerRef | null>; frames: FrameStore; selectedId: string | null
   onSelect: (id: string | null) => void; transient: (p: Project) => void; commit: (before: Project) => void
-  onPlaying: (playing: boolean) => void
+  onPlaying: (playing: boolean) => void; playbackRate: number
 }
 
 /** Fits a w:h box inside the element and returns its size. */
@@ -37,7 +37,7 @@ function useFit(ref: RefObject<HTMLDivElement | null>, ratio: number) {
   return size
 }
 
-export function Preview({ project, playerRef, frames, selectedId, onSelect, transient, commit, onPlaying }: Props) {
+export function Preview({ project, playerRef, frames, selectedId, onSelect, transient, commit, onPlaying, playbackRate }: Props) {
   const area = useRef<HTMLDivElement>(null)
   const { width, height } = canvasSize[project.format]
   const size = useFit(area, width / height)
@@ -63,7 +63,7 @@ export function Preview({ project, playerRef, frames, selectedId, onSelect, tran
     {size.width > 0 && <div className={e.canvas} style={{ width: size.width, height: size.height }}>
       <Player ref={playerRef} component={EditorComposition} inputProps={{ project }} durationInFrames={duration} fps={FPS}
         compositionWidth={width} compositionHeight={height} style={{ width: '100%', height: '100%' }}
-        controls={false} clickToPlay={false} doubleClickToFullscreen={false} spaceKeyToPlayOrPause={false} acknowledgeRemotionLicense />
+        playbackRate={playbackRate} controls={false} clickToPlay={false} doubleClickToFullscreen={false} spaceKeyToPlayOrPause={false} acknowledgeRemotionLicense />
       <Overlay project={project} frames={frames} selectedId={selectedId} onSelect={onSelect} transient={transient} commit={commit} size={size} />
     </div>}
   </div>
@@ -75,6 +75,27 @@ function Overlay({ project, frames, selectedId, onSelect, transient, commit, siz
   const visible = [...project.tracks].reverse().filter(t => t.kind !== 'audio' && !t.hidden)
     .flatMap(t => t.clips.filter(c => frame >= c.start && frame < clipEnd(c)).map(c => ({ track: t, clip: c })))
   const selected = findClip(project, selectedId)
+  const [guides, setGuides] = useState<{ x: number | null; y: number | null }>({ x: null, y: null })
+
+  /**
+   * Snaps the moving box's edges and center to the canvas edges and center and to the other visible
+   * elements, like Canva/CapCut, and returns the snapped box plus the guide lines to draw.
+   */
+  const snapBox = (b: Box, id: string) => {
+    const others = visible.filter(v => v.clip.id !== id && v.clip.props.box).map(v => v.clip.props.box!)
+    const xs = [0, 50, 100, ...others.flatMap(o => [o.x, o.x + o.w / 2, o.x + o.w])]
+    const ys = [0, 50, 100, ...others.flatMap(o => [o.y, o.y + o.h / 2, o.y + o.h])]
+    const fit = (pos: number, size: number, lines: number[]) => {
+      let best: { shift: number; line: number } | null = null
+      for (const anchor of [pos, pos + size / 2, pos + size]) for (const line of lines) {
+        const d = line - anchor
+        if (Math.abs(d) <= 1.2 && (!best || Math.abs(d) < Math.abs(best.shift))) best = { shift: d, line }
+      }
+      return best
+    }
+    const sx = fit(b.x, b.w, xs), sy = fit(b.y, b.h, ys)
+    return { box: { ...b, x: b.x + (sx?.shift ?? 0), y: b.y + (sy?.shift ?? 0) }, guides: { x: sx?.line ?? null, y: sy?.line ?? null } }
+  }
 
   const drag = (ev: React.PointerEvent, id: string, mode: 'move' | 'resize') => {
     ev.stopPropagation()
@@ -89,12 +110,13 @@ function Overlay({ project, frames, selectedId, onSelect, transient, commit, siz
       const dx = (m.clientX - x0) / size.width * 100, dy = (m.clientY - y0) / size.height * 100
       if (!moved && Math.abs(m.clientX - x0) + Math.abs(m.clientY - y0) < 3) return
       moved = true
-      const box: Box = mode === 'move'
+      let box: Box = mode === 'move'
         ? { ...origin, x: Math.round((origin.x + dx) * 10) / 10, y: Math.round((origin.y + dy) * 10) / 10 }
         : { ...origin, w: Math.max(3, Math.round((origin.w + dx) * 10) / 10), h: Math.max(3, Math.round((origin.h + dy) * 10) / 10) }
+      if (mode === 'move' && !m.altKey) { const s = snapBox(box, id); box = s.box; setGuides(s.guides) }
       transient(updateProps(before, id, { box }))
     }
-    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); if (moved) commit(before) }
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); setGuides({ x: null, y: null }); if (moved) commit(before) }
     el.addEventListener('pointermove', move)
     el.addEventListener('pointerup', up)
     el.addEventListener('pointercancel', up)
@@ -109,5 +131,7 @@ function Overlay({ project, frames, selectedId, onSelect, transient, commit, siz
       <span className={e.selTag}>{kindLabel[selected.track.kind]}</span>
       <span className={e.resize} onPointerDown={ev => drag(ev, selected.clip.id, 'resize')} />
     </div>}
+    {guides.x !== null && <span className={e.vGuide} style={{ left: `${guides.x}%` }} />}
+    {guides.y !== null && <span className={e.hGuide} style={{ top: `${guides.y}%` }} />}
   </div>
 }

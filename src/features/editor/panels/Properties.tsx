@@ -1,8 +1,8 @@
 'use client'
 
-import { BetweenHorizontalStart, ChevronLeft, ChevronRight, ClipboardCopy, Copy, Diamond, FlipHorizontal2, FlipVertical2, Lock, Scissors, Trash2 } from 'lucide-react'
+import { AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignHorizontalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd, AlignVerticalJustifyStart, BetweenHorizontalStart, ChevronLeft, ChevronRight, ClipboardCopy, Copy, Diamond, FlipHorizontal2, FlipVertical2, Group, Lock, Scissors, Trash2, Ungroup } from 'lucide-react'
 import { filterPresets, media, mediaLibrary, neutralFilter, speeds } from '../project/data'
-import { clearKeyframes, motionAt, removeKeyframe, setKeyframe } from '../project/keyframes'
+import { clearKeyframes, motionAt, removeKeyframe, setKeyframe, textAt } from '../project/keyframes'
 import { clipEnd, findClip, maxDuration, mapClip, projectDuration, setSpeed, updateProps } from '../project/ops'
 import { useFrame, type FrameStore } from '../project/useEditor'
 import { FPS, kindLabel, visualKinds, type Box, type ClipProps, type Crop, type Filter, type Fit, type Format, type Motion, type Project, type Transition, type TransitionType, type Watermark } from '../project/types'
@@ -13,7 +13,7 @@ import e from '../editor.module.css'
 type Props = {
   project: Project; selectedIds: string[]; frames: FrameStore
   apply: (fn: (p: Project) => Project, key?: string) => void; seek: (frame: number) => void
-  onDuplicate: () => void; onSplit: () => void; onDelete: () => void; onRipple: () => void; onCopy: () => void
+  onDuplicate: () => void; onSplit: () => void; onDelete: () => void; onRipple: () => void; onCopy: () => void; onGroup: () => void; onUngroup: () => void
 }
 
 const textColors = ['#ffffff', '#111827', '#facc15', '#3b82f6', '#f43f5e', '#22c55e']
@@ -27,6 +27,15 @@ const motionFields: { key: keyof Motion; label: string; min: number; max: number
   { key: 'scale', label: 'Escala', min: 0.1, max: 3, step: 0.05, show: v => `${Math.round(v * 100)}%` },
   { key: 'rotation', label: 'Rotação', min: -180, max: 180, step: 1, show: v => `${Math.round(v)}°` },
   { key: 'opacity', label: 'Opacidade', min: 0, max: 1, step: 0.05, show: v => `${Math.round(v * 100)}%` },
+]
+
+const aligns: { label: string; Icon: typeof Group; fn: (b: Box) => Box }[] = [
+  { label: 'Alinhar à esquerda', Icon: AlignHorizontalJustifyStart, fn: b => ({ ...b, x: 0 }) },
+  { label: 'Centralizar na horizontal', Icon: AlignHorizontalJustifyCenter, fn: b => ({ ...b, x: (100 - b.w) / 2 }) },
+  { label: 'Alinhar à direita', Icon: AlignHorizontalJustifyEnd, fn: b => ({ ...b, x: 100 - b.w }) },
+  { label: 'Alinhar no topo', Icon: AlignVerticalJustifyStart, fn: b => ({ ...b, y: 0 }) },
+  { label: 'Centralizar na vertical', Icon: AlignVerticalJustifyCenter, fn: b => ({ ...b, y: (100 - b.h) / 2 }) },
+  { label: 'Alinhar embaixo', Icon: AlignVerticalJustifyEnd, fn: b => ({ ...b, y: 100 - b.h }) },
 ]
 
 const sec = (frames: number) => Math.round(frames / FPS * 10) / 10
@@ -101,9 +110,9 @@ function ClipPanel({ frames, apply, seek, onDuplicate, onSplit, onDelete, onRipp
 
     {visual && <TransitionSection transIn={p.transIn} transOut={p.transOut} max={clip.duration} onChange={(patch, key) => set(patch, key)} />}
 
-    {visual && <MotionSection clipId={clip.id} start={clip.start} duration={clip.duration} frame={frame} keyframes={p.keyframes} apply={apply} seek={seek} />}
+    {visual && <MotionSection clipId={clip.id} start={clip.start} duration={clip.duration} frame={frame} keyframes={p.keyframes} apply={apply} seek={seek} text={track.kind === 'texto' ? { color: p.color ?? '#ffffff', fontSize: p.fontSize ?? 64 } : undefined} />}
 
-    {p.box && <Section title="Posição e tamanho (%)"><div className={e.four}>{(['x', 'y', 'w', 'h'] as const).map(k => <label key={k}><span>{k === 'w' ? 'L' : k === 'h' ? 'A' : k.toUpperCase()}</span><input type="number" step={1} value={p.box![k]} onChange={ev => set({ box: { ...p.box!, [k]: +ev.target.value } as Box }, `box${k}`)} /></label>)}</div></Section>}
+    {p.box && <Section title="Posição e tamanho (%)" extra={<span className={e.alignRow}>{aligns.map(a => <button key={a.label} onClick={() => set({ box: a.fn(p.box!) }, 'align')} title={a.label} aria-label={a.label}><a.Icon size={14} /></button>)}</span>}><div className={e.four}>{(['x', 'y', 'w', 'h'] as const).map(k => <label key={k}><span>{k === 'w' ? 'L' : k === 'h' ? 'A' : k.toUpperCase()}</span><input type="number" step={1} value={p.box![k]} onChange={ev => set({ box: { ...p.box!, [k]: +ev.target.value } as Box }, `box${k}`)} /></label>)}</div></Section>}
 
     <div className={e.actions}>
       <button className={e.action} onClick={onSplit}><Scissors size={15} />Dividir</button>
@@ -152,7 +161,7 @@ function TransitionSection({ transIn, transOut, max, onChange }: { transIn?: Tra
 }
 
 /** Sliders show the motion at the playhead; moving one writes a keyframe there, like in CapCut. */
-function MotionSection({ clipId, start, duration, frame, keyframes, apply, seek }: { clipId: string; start: number; duration: number; frame: number; keyframes?: ClipProps['keyframes']; apply: Props['apply']; seek: (f: number) => void }) {
+function MotionSection({ clipId, start, duration, frame, keyframes, apply, seek, text }: { clipId: string; start: number; duration: number; frame: number; keyframes?: ClipProps['keyframes']; apply: Props['apply']; seek: (f: number) => void; text?: { color: string; fontSize: number } }) {
   const rel = frame - start
   const inside = rel >= 0 && rel < duration
   const m = motionAt(keyframes, Math.max(0, Math.min(duration - 1, rel)))
@@ -168,12 +177,21 @@ function MotionSection({ clipId, start, duration, frame, keyframes, apply, seek 
     {motionFields.map(f => <Field key={f.key} label={`${f.label} · ${f.show(m[f.key])}`}>
       <input type="range" min={f.min} max={f.max} step={f.step} value={m[f.key]} disabled={!inside} onChange={ev => apply(p => setKeyframe(p, clipId, rel, { [f.key]: +ev.target.value }), `${clipId}:kf:${rel}:${f.key}`)} />
     </Field>)}
+    {text && (() => {
+      const keyed = textAt(keyframes, Math.max(0, Math.min(duration - 1, rel)))
+      const size = Math.round(keyed.fontSize ?? text.fontSize), color = keyed.color ?? text.color
+      return <>
+        <Field label={`Tamanho do texto · ${size}`}><input type="range" min={24} max={220} value={size} disabled={!inside} onChange={ev => apply(p => setKeyframe(p, clipId, rel, { fontSize: +ev.target.value }), `${clipId}:kf:${rel}:fs`)} /></Field>
+        <Field label="Cor do texto animada"><Swatches colors={textColors} value={color.startsWith('#') ? color : undefined} onPick={c => inside && apply(p => setKeyframe(p, clipId, rel, { color: c ?? '#ffffff' }))} /></Field>
+      </>
+    })()}
     <p className={e.hint}>{list.length ? `${list.length} keyframe${list.length > 1 ? 's' : ''}. Mova a agulha e mude os valores para criar outro.` : 'Mexa num controle para criar o primeiro keyframe na agulha.'}</p>
     {list.length > 0 && <button className={e.linkBtn} onClick={() => apply(p => clearKeyframes(p, clipId))}>Remover todos os keyframes</button>}
   </Section>
 }
 
-function MultiProps({ selectedIds, onDelete, onRipple, onCopy, onDuplicate }: Props) {
+function MultiProps({ project, selectedIds, onDelete, onRipple, onCopy, onDuplicate, onGroup, onUngroup }: Props) {
+  const grouped = project.tracks.some(t => t.clips.some(c => selectedIds.includes(c.id) && c.group))
   return <aside className={e.props}>
     <div className={e.propsHead}><b>{selectedIds.length} clipes selecionados</b></div>
     <p className={e.hint}>Arraste qualquer um deles para mover todos juntos. Shift ou Ctrl + clique adiciona ou tira da seleção.</p>
@@ -183,6 +201,8 @@ function MultiProps({ selectedIds, onDelete, onRipple, onCopy, onDuplicate }: Pr
       <button className={`${e.action} ${e.danger}`} onClick={onDelete}><Trash2 size={15} />Excluir</button>
     </div>
     <button className={e.wideAction} onClick={onRipple}><BetweenHorizontalStart size={15} />Excluir e fechar o buraco</button>
+    {grouped ? <button className={e.wideAction} onClick={onUngroup}><Ungroup size={15} />Desagrupar (Ctrl+Shift+G)</button>
+      : <button className={e.wideAction} onClick={onGroup}><Group size={15} />Agrupar (Ctrl+G)</button>}
   </aside>
 }
 
@@ -209,7 +229,9 @@ function ProjectProps({ project, apply }: { project: Project; apply: Props['appl
       <span><kbd>Delete</kbd>Excluir · <kbd>⇧ Delete</kbd>fechando o buraco</span>
       <span><kbd>⇧ clique</kbd>Selecionar vários · <kbd>Ctrl A</kbd>todos</span>
       <span><kbd>Ctrl C</kbd>Copiar · <kbd>Ctrl X</kbd>Recortar · <kbd>Ctrl V</kbd>Colar</span>
-      <span><kbd>Ctrl D</kbd>Duplicar</span>
+      <span><kbd>Ctrl D</kbd>Duplicar · <kbd>Ctrl G</kbd>Agrupar</span>
+      <span><kbd>J</kbd>Voltar 1 s · <kbd>K</kbd>Pausar · <kbd>L</kbd>Tocar (de novo: 2x, 4x)</span>
+      <span><kbd>F</kbd>Tela cheia · <kbd>Ctrl roda</kbd>Zoom da linha do tempo</span>
       <span><kbd>Ctrl Z</kbd>Desfazer · <kbd>Ctrl ⇧ Z</kbd>Refazer</span>
     </div>
     <p className={e.hint}>Clique num clipe na linha do tempo ou direto no vídeo para editar.</p>

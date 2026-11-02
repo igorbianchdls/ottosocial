@@ -1,6 +1,6 @@
 'use client'
 
-import { Captions, Film, Image as ImageIcon, Music, Shapes, Type } from 'lucide-react'
+import { Captions, Film, Image as ImageIcon, Link2, Music, Shapes, Type } from 'lucide-react'
 import { media } from '../project/data'
 import { volumeAt } from '../project/audio'
 import type { Clip, Project, TrackKind } from '../project/types'
@@ -51,7 +51,7 @@ export function ClipView({ clip, kind, ppf, on, onDrag, onSeek, project, voices 
     {(kind === 'audio' || (kind === 'video' && (clip.props.fadeIn || clip.props.fadeOut))) && <Envelope clip={clip} ppf={ppf} width={width} project={project} voices={voices} />}
     {transIn && <span className={`${e.trans} ${e.transIn}`} style={{ width: Math.min(width / 2, transIn.frames * ppf) }} title={`Entrada: ${transIn.type}`} />}
     {transOut && <span className={`${e.trans} ${e.transOut}`} style={{ width: Math.min(width / 2, transOut.frames * ppf) }} title={`Saída: ${transOut.type}`} />}
-    <span className={e.clipLabel}><Icon size={12} />{label}{clip.speed && clip.speed !== 1 && <em className={e.speedTag}>{clip.speed}x</em>}</span>
+    <span className={e.clipLabel}>{clip.group && <Link2 size={12} aria-label="Agrupado" />}<Icon size={12} />{label}{clip.speed && clip.speed !== 1 && <em className={e.speedTag}>{clip.speed}x</em>}</span>
     {keyframes?.map(k => <button key={k.frame} className={e.diamond} style={{ left: k.frame * ppf }} aria-label="Ir para o keyframe"
       onPointerDown={ev => { ev.stopPropagation(); onSeek(clip.start + k.frame) }} />)}
     <span className={`${e.edge} ${e.edgeL}`} onPointerDown={ev => onDrag(ev, clip, 'left')} />
