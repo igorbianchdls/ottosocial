@@ -63,3 +63,9 @@ Cada feature ganha `server/` (banco, storage, publicação) e `api/` só quando 
 pnpm install
 pnpm dev
 ```
+
+## Banco de dados (Supabase)
+
+O schema está em `supabase/migrations/20261102000001_init.sql`: workspaces e membros, spaces, pastas (com subpastas), arquivos, favoritos e recentes, contas sociais (tokens só no servidor), posts (arquivos e contas por post), projetos e versões do editor, notificações, configurações e plugin. Todas as tabelas têm RLS: cada pessoa só vê e altera os workspaces de que é membro. Os arquivos ficam no bucket privado `media`, numa pasta por workspace (`<workspace_id>/...`).
+
+Para aplicar: Supabase → SQL Editor → colar o arquivo → Run (ou `supabase db push`).
