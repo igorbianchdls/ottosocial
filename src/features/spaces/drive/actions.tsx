@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Clapperboard, Copy, Download, Eye, FolderInput, FolderOpen, FolderPlus, FolderUp, Pencil, RotateCcw, Send, Star, StarOff, Trash2, Upload } from 'lucide-react'
 import { downloadBlob } from '../blobs'
+import { notify } from '@/features/notifications/store'
 import { createFolder, deleteForever, duplicateFiles, emptyTrash, getDrive, isFavorite, markOpened, moveItems, rename, restoreItems, setFavorite, trashItems, uploadFiles, type DFile, type Item } from '../store'
 import { useDrive } from '../hooks'
 import { ConfirmDialog, ContextMenu, MoveDialog, NameDialog, type MenuItem, type MenuState } from './ui'
@@ -45,6 +46,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
     try {
       const ids = await uploadFiles(list, spaceId, folderId)
       setToast(`${ids.length} ${ids.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}.`)
+      notify({ kind: 'arquivos', title: `${ids.length} ${ids.length === 1 ? 'arquivo enviado' : 'arquivos enviados'}`, text: list.slice(0, 3).map(f => f.name).join(', ') + (list.length > 3 ? '…' : ''), href: folderId ? `/pastas/${folderId}` : `/spaces/${spaceId}`, action: 'Abrir pasta' })
     } catch {
       setToast('Não foi possível enviar. O navegador pode estar sem espaço.')
     } finally { setUploading(n => Math.max(0, n - list.length)) }

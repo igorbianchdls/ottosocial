@@ -5,11 +5,15 @@ import { usePathname } from 'next/navigation'
 import { Bell, Blocks, CalendarClock, Clapperboard, Clock, FolderClosed, House, LogOut, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2, UsersRound } from 'lucide-react'
 import { useDrive } from '@/features/spaces/hooks'
 import { openPalette } from './CommandPalette'
+import { useVisibleNotifications } from '@/features/notifications/NotificationsView'
+import { useSettings } from '@/features/settings/store'
 import s from './ui.module.css'
 
 export function Sidebar() {
   const path = usePathname()
   const { folders, spaces } = useDrive()
+  const unread = useVisibleNotifications().filter(x => !x.read).length
+  const { profile, workspace } = useSettings()
   const inSpaces = path.startsWith('/spaces') || path.startsWith('/pastas')
   const folderSpace = path.startsWith('/pastas/') ? folders.find(f => f.id === path.split('/')[2])?.spaceId : undefined
   const item = (href: string, label: string, Icon: typeof House, on: boolean, extra?: React.ReactNode) =>
@@ -32,9 +36,9 @@ export function Sidebar() {
     {item('/plugin', 'Plugin', Blocks, path === '/plugin')}
     <div className={s.spacer} />
     <div className={s.sidebarFoot}>
-      {item('/configuracoes', 'Configurações', Settings, path === '/configuracoes')}
-      {item('/notificacoes', 'Notificações', Bell, path === '/notificacoes', <span className={s.badge}>5</span>)}
+      {item('/configuracoes', 'Configurações', Settings, path.startsWith('/configuracoes'))}
+      {item('/notificacoes', 'Notificações', Bell, path === '/notificacoes', unread > 0 ? <span className={s.badge}>{unread}</span> : undefined)}
     </div>
-    <div className={s.user}><span className={s.avatar}>I</span><span><b>Igor</b><small>Workspace Otto ERP</small></span><Link href="/login" className={s.iconBtn} aria-label="Sair"><LogOut size={17} /></Link></div>
+    <div className={s.user}><span className={s.avatar} style={{ background: profile.color }}>{profile.name.trim()[0]?.toUpperCase() ?? '?'}</span><span><b>{profile.name || 'Sem nome'}</b><small>Workspace {workspace.name}</small></span><Link href="/login" className={s.iconBtn} aria-label="Sair"><LogOut size={17} /></Link></div>
   </aside>
 }

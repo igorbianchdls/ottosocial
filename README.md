@@ -15,7 +15,9 @@ Interface completa com dados de exemplo, sem backend:
 - `/editor` Projetos de vídeo. `/editor/[id]` Editor com linha do tempo (faixas de texto, legenda, forma, imagem, vídeo e áudio; mover, cortar pontas, dividir, ímã, zoom, desfazer), prévia em Remotion com seleção e arraste direto no vídeo, painel de propriedades e um chat de IA de demonstração. Recursos: keyframes (mover, escala, rotação, opacidade), transições de entrada e saída (fade, deslizar, zoom, desfoque), velocidade (0,5x a 3x), filtros (P&B, vívido, quente, vintage, escuro, brilho, contraste, saturação), fontes, seleção múltipla com arraste em grupo, copiar/recortar/colar, excluir fechando o buraco, seleção por caixa, transição no corte entre dois clipes, inserir empurrando, travar e reordenar faixas, marcadores (M), fade de áudio e ducking (a trilha abaixa durante a narração), contorno e sombra no texto, modelos de texto (manchete, nome e cargo, destaque), stickers animados, barra de progresso, marca d'água, recortar/espelhar, encaixe com fundo desfocado, modelos de projeto (Reel 15s, Story, 16:9, quadrado) e versões salvas, agrupar clipes (Ctrl+G), guias de alinhamento e botões de alinhar na prévia, keyframes de cor e tamanho do texto, tela cheia (F), repetir trecho entre marcadores, J/K/L, zoom com Ctrl+roda e layout de celular com abas Ferramentas/Propriedades. Nas pastas, "Abrir no editor" cria um projeto com os arquivos escolhidos.
 - `/plugin` Plugin do ChatGPT e do Claude: conexões, o que o assistente pode fazer (com permissão por ação), atividade e exemplos de pedidos.
 - Busca global (Ctrl+K ou "Buscar" no menu): arquivos, pastas, spaces, posts e projetos do editor, sem acento e com várias palavras, além de ações rápidas e atalhos de navegação. Abrir um arquivo leva à pasta com o visualizador aberto; abrir um post abre o painel dele.
-- `/contas`, `/configuracoes`, `/notificacoes`, `/login`.
+- `/notificacoes` Notificações agrupadas por dia (hoje, ontem, esta semana), abas Todas/Não lidas, filtros por tipo, marcar como lida (uma ou todas, com desfazer), apagar, e ação direta (ver post, reconectar, abrir pasta). O contador do menu mostra as não lidas. Posts agendados/publicados e envios de arquivos geram notificações.
+- `/configuracoes` Perfil (nome, cargo, cor), workspace (nome, fuso, idioma), aparência (claro, escuro, igual ao sistema, modo compacto), notificações (por tipo, canais, horário silencioso), publicação (contas, formato, horário e hashtags padrão, confirmar antes de publicar), armazenamento, atalhos e dados (exportar e importar backup, recomeçar com os dados de exemplo).
+- `/contas`, `/login`.
 
 Os spaces, pastas, arquivos, posts e projetos do editor ficam no `localStorage` do navegador, e os arquivos enviados ficam no IndexedDB (com prévia real de imagem e vídeo). No editor, os vídeos e imagens aparecem como placeholders até os arquivos virem do Storage.
 
@@ -29,6 +31,8 @@ src/
     posts/           postar, agendados, contas (telas, tipos, dados de exemplo e store)
     home/            tela inicial, que junta spaces e posts
     plugin/          integração com ChatGPT e Claude (MCP); usa spaces e posts
+    notifications/   notificações (dados, store e tela)
+    settings/        configurações (store, tela e o tema)
     editor/          editor de vídeo
       project/       tipos, operações (mover, cortar, dividir, velocidade...), keyframes, copiar e colar, dados de exemplo e o estado com desfazer
       timeline/      linha do tempo e os clipes (com keyframes, transições e velocidade)

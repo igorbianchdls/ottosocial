@@ -9,8 +9,8 @@
 .pickedThumb { width: 58px !important; height: 72px !important; aspect-ratio: auto !important; border-radius: 9px !important; }
 .pickedThumb svg { width: 16px; height: 16px; }
 .pickedThumb i { display: none !important; }
-.picked i { position: absolute; left: 4px; top: 4px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; font-size: 10.5px; font-style: normal; font-weight: 700; }
-.picked button { position: absolute; right: -6px; top: -6px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px var(--line-strong); font-size: 14px; line-height: 1; color: var(--text); }
+.picked i { position: absolute; left: 4px; top: 4px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--on-ink); font-size: 10.5px; font-style: normal; font-weight: 700; }
+.picked button { position: absolute; right: -6px; top: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--panel); box-shadow: 0 0 0 1px var(--line-strong); font-size: 14px; line-height: 1; color: var(--text); }
 
 /* Caption counters and checks */
 .counters { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -31,7 +31,7 @@
 .previewWrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .viewTabs { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .viewTabs button { height: 28px; padding: 0 12px; border-radius: 7px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.viewOn { background: var(--ink) !important; color: #fff !important; }
+.viewOn { background: var(--ink) !important; color: var(--on-ink) !important; }
 .phone { width: 290px; aspect-ratio: 9 / 19; border-radius: 40px; padding: 10px; background: #0b0d12; box-shadow: 0 20px 50px rgb(17 24 39 / .25); }
 .screen { position: relative; height: 100%; border-radius: 31px; overflow: hidden; background: #000; color: #fff; font-size: 12px; }
 .screenFeed { background: #fff; color: #111; }
@@ -53,7 +53,7 @@
 .more { opacity: .75; }
 .storyBars { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 3px; }
 .storyBars i { flex: 1; height: 2px; border-radius: 1px; background: rgb(255 255 255 / .4); }
-.storyBars .barOn { background: #fff; }
+.storyBars .barOn { background: var(--panel); }
 .storyHead { position: absolute; top: 22px; left: 12px; display: flex; align-items: center; gap: 7px; text-shadow: 0 1px 4px rgb(0 0 0 / .4); }
 .storyHead small { opacity: .75; }
 .storyReply { position: absolute; left: 12px; right: 12px; bottom: 14px; display: flex; align-items: center; gap: 12px; }
@@ -65,7 +65,7 @@
 .feedHead { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12px; }
 .feedHead b { flex: 1; }
 .feedHead .avatar { box-shadow: none; }
-.feedMedia { position: relative; aspect-ratio: 4 / 5; background: #f1f3f6; overflow: hidden; }
+.feedMedia { position: relative; aspect-ratio: 4 / 5; background: var(--subtle); overflow: hidden; }
 .counter { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 2px 7px; border-radius: 999px; background: rgb(0 0 0 / .65); color: #fff; font-size: 10.5px; font-style: normal; }
 .dots { display: flex; justify-content: center; gap: 4px; padding-top: 6px; }
 .dots button { width: 6px; height: 6px; border-radius: 50%; background: #c7ccd4; padding: 0; }
@@ -75,7 +75,7 @@
 
 /* Agendados */
 .clickRow { cursor: pointer; }
-.clickRow:hover { background: #f8f9fb; }
+.clickRow:hover { background: var(--subtle); }
 .calTitle { min-width: 190px; text-align: center; }
 .capital { text-transform: capitalize; }
 .chip { display: flex; align-items: center; gap: 5px; width: 100%; padding: 3px 6px; border-radius: 7px; font-size: 11.5px; font-weight: 500; color: var(--ink); text-align: left; cursor: grab; min-width: 0; }
@@ -84,7 +84,7 @@
 .chipLocked { cursor: pointer; }
 .chipNets { margin-left: auto; display: inline-flex; gap: 2px; flex-shrink: 0; }
 .dropOn { background: var(--blue-soft) !important; box-shadow: inset 0 0 0 2px var(--blue); }
-.past { background: #fafbfc; }
+.past { background: var(--subtle); }
 .moreDay { align-self: flex-start; font-size: 11.5px; color: var(--blue-strong); font-weight: 500; }
 
 .week { border-radius: var(--radius); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); background: var(--panel); }
@@ -93,7 +93,7 @@
 .weekHead b { display: flex; flex-direction: column; align-items: center; padding: 8px 0; font-weight: 600; }
 .weekHead small { color: var(--muted); font-size: 11px; text-transform: uppercase; }
 .weekHead b span { font-size: 18px; }
-.todayCol span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; }
+.todayCol span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--on-ink); }
 .weekBody { max-height: 560px; overflow: auto; }
 .hour { padding: 4px 8px 0 0; text-align: right; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; border-right: 1px solid var(--line); }
 .slot { min-height: 46px; padding: 3px; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0; }
@@ -114,7 +114,7 @@
 .danger { color: var(--red) !important; }
 .menu { position: fixed; z-index: 60; min-width: 210px; padding: 6px 0; border-radius: 10px; background: var(--panel); box-shadow: 0 8px 28px rgb(17 24 39 / .2), 0 0 0 1px rgb(17 24 39 / .06); }
 .menu button { width: 100%; display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 14px; font-size: 13.5px; color: var(--ink); }
-.menu button:hover { background: #f1f3f6; }
+.menu button:hover { background: var(--subtle); }
 .undo { margin-left: 12px; color: #93c5fd; font-weight: 600; }
 
 @media (max-width: 760px) {
@@ -122,3 +122,6 @@
   .week { overflow-x: auto; }
   .chip b { display: none; }
 }
+
+.addTags { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 14px; border: 1px dashed var(--line-strong); color: var(--blue-strong); font-size: 12.5px; }
+.addTags:hover { background: var(--blue-soft); }

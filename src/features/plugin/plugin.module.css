@@ -19,7 +19,7 @@
 .st_recusado { background: var(--red-soft); color: var(--red); }
 .examples { display: flex; flex-direction: column; gap: 6px; }
 .examples button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--soft); text-align: left; color: var(--text); }
-.examples button:hover { color: var(--ink); background: #eef1f5; }
+.examples button:hover { color: var(--ink); background: var(--subtle); }
 .examples svg { color: var(--muted); flex-shrink: 0; }
 .note { display: flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 12px; }
 

@@ -12,11 +12,18 @@ import { accounts, formatLabel, networkLabel, type Post, type PostFormat, type P
 import { checkPost, hashtags, limits, networksOf } from './rules'
 import { PostPreview } from './Preview'
 import { deletePost, getPosts, newPostId, nowStamp, savePost } from './store'
+import { getSettings, useSettings } from '@/features/settings/store'
+import { notify } from '@/features/notifications/store'
 import s from '@/components/ui.module.css'
 import p from './posts.module.css'
 
-/** Next full hour, as the default time to schedule. */
-const nextHour = () => { const d = new Date(Date.now() + 3600e3); d.setMinutes(0, 0, 0); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16) }
+/** Next time the default posting hour comes around (Configurações → Publicação). */
+function nextDefaultTime() {
+  const [h, m] = getSettings().posting.time.split(':').map(Number)
+  const d = new Date(); d.setHours(h, m, 0, 0)
+  if (d.getTime() < Date.now() + 15 * 60e3) d.setDate(d.getDate() + 1)
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
 
 export function Composer({ initialFiles, editId }: { initialFiles: string[]; editId?: string }) {
   const router = useRouter()
@@ -46,7 +53,16 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
     setWhen(post.status === 'agendado' || post.status === 'rascunho' ? 'agendar' : 'agora'); setDate(post.date)
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [editId])
-  useEffect(() => { if (!date) setDate(nextHour()) }, [date]) // eslint-disable-line react-hooks/set-state-in-effect
+  useEffect(() => { if (!date) setDate(nextDefaultTime()) }, [date]) // eslint-disable-line react-hooks/set-state-in-effect
+  // New posts start with the default accounts and format from Configurações.
+  useEffect(() => {
+    if (editId) return
+    const { posting } = getSettings()
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setAccountIds(posting.accountIds.length ? posting.accountIds : ['ig-otto']); setFormat(posting.format)
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [editId])
+  const { posting: postingPrefs } = useSettings()
 
   const pool = files.filter(f => f.folderId === folderId && (f.kind === 'video' || f.kind === 'image'))
   const toggle = <T,>(list: T[], v: T) => list.includes(v) ? list.filter(x => x !== v) : [...list, v]
@@ -59,8 +75,10 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
   const pastDate = when === 'agendar' && !!date && date < nowStamp()
 
   function submit(status: PostStatus) {
+    if (status === 'publicado' && postingPrefs.confirm && !window.confirm(`Publicar agora em ${nets.length} ${nets.length === 1 ? 'rede' : 'redes'}?`)) return
     const base = editing ?? { id: newPostId() }
     savePost({ ...base, fileIds: picked, caption: caption.trim(), accountIds, format, date: status === 'agendado' || status === 'rascunho' ? date : nowStamp(), status } as Post)
+    if (status !== 'rascunho') notify({ kind: status === 'agendado' ? 'agendado' : 'publicado', title: status === 'agendado' ? `Post agendado para ${date.slice(8, 10)}/${date.slice(5, 7)} às ${date.slice(11, 16)}` : 'Post enviado para publicação', text: caption.trim().slice(0, 120), href: `/posts?post=${base.id}`, action: 'Ver post' })
     setToast(status === 'rascunho' ? 'Rascunho salvo.' : status === 'agendado' ? (editing ? 'Agendamento atualizado.' : 'Post agendado.') : 'Post enviado para publicação (demonstração).')
     setTimeout(() => router.push('/posts'), 900)
   }
@@ -93,6 +111,7 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
             {nets.map(n => { const l = limits[n], over = caption.length > l.chars; return <span key={n} className={`${p.counterChip} ${over ? p.over : caption.length > l.chars * 0.9 ? p.near : ''}`}><NetworkIcon network={n} size={16} />{caption.length.toLocaleString('pt-BR')}/{l.chars.toLocaleString('pt-BR')}</span> })}
             <span className={`${p.counterChip} ${nets.includes('instagram') && tags.length > 30 ? p.over : ''}`}><Hash size={13} />{tags.length} {tags.length === 1 ? 'hashtag' : 'hashtags'}{nets.includes('instagram') ? ' de 30' : ''}</span>
           </div>
+          {postingPrefs.hashtags.trim() && !caption.includes(postingPrefs.hashtags.trim()) && <button className={p.addTags} onClick={() => setCaption(c => `${c.trimEnd()}${c.trim() ? '\n\n' : ''}${postingPrefs.hashtags.trim()}`)}><Hash size={13} />Inserir hashtags padrão: {postingPrefs.hashtags.trim()}</button>}
           {tags.length > 0 && <div className={p.tags}>{[...new Set(tags)].map(t => <span key={t}>{t}</span>)}</div>}
         </div>
         <div className={`${s.card} ${s.step}`}>
