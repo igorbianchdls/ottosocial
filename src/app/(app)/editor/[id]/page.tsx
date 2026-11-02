@@ -8,5 +8,6 @@ export default async function EditorProjectPage({ params, searchParams }: { para
   const { id } = await params
   const { arquivos, modelo } = await searchParams
   const initial = sampleProjects.find(p => p.id === id) ?? (modelo ? fromTemplate(id, modelo) : null) ?? blankProject(id, arquivos ? arquivos.split(',') : [])
-  return <EditorView key={id} initial={initial} />
+  const isSample = sampleProjects.some(p => p.id === id) || !!modelo
+  return <EditorView key={id} initial={initial} fileIds={!isSample && arquivos ? arquivos.split(',') : undefined} />
 }

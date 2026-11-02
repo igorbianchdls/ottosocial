@@ -35,13 +35,16 @@ export function readSaved(): Record<string, Project> {
 }
 
 /** Project state with undo/redo, saved in this browser until projects live in Supabase. */
-export function useEditor(initial: Project) {
+/** `rebuild` makes the project on the client when it isn't saved yet (uploaded files only exist in this browser). */
+export function useEditor(initial: Project, rebuild?: () => Project) {
   const [state, dispatch] = useReducer(reducer, { past: [], present: initial, future: [] })
   // Skips the save that runs in the same commit as the load, so it can't overwrite the saved copy.
   const skipSave = useRef(true)
   useEffect(() => {
     const saved = readSaved()[initial.id]
     if (saved) dispatch({ type: 'load', project: saved })
+    else if (rebuild) dispatch({ type: 'load', project: rebuild() })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial.id])
   useEffect(() => {
     if (skipSave.current) { skipSave.current = false; return }

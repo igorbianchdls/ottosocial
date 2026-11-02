@@ -230,3 +230,6 @@
   .metrics { order: 5; }
   .phone { width: 250px; }
 }
+.thumbMedia { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.subDivider { height: 1px; margin: 4px 8px; background: var(--line); }
+.subIcon { color: var(--muted); margin-right: 8px; flex-shrink: 0; }

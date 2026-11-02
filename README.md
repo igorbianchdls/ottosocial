@@ -8,15 +8,15 @@ Interface completa com dados de exemplo, sem backend:
 
 - `/` Início: armazenamento, próximos posts, arquivos recentes e publicados.
 - `/spaces` Todos os spaces em cards, com o armazenamento usado, a divisão por tipo e os arquivos recentes.
-- `/spaces/[id]` Um space: pastas em cards, busca, painel Info (espaço por tipo, propriedades e tags).
-- `/pastas/[id]` Arquivos da pasta: grade ou lista, seleção múltipla e "Postar" com os arquivos escolhidos.
+- `/spaces/[id]` e `/pastas/[id]` Explorador no estilo Google Drive: pastas e arquivos na mesma tela, pasta dentro de pasta, botão "+ Novo" (nova pasta, enviar arquivos, enviar pasta), busca na pasta e subpastas, filtros (tipo, data, tamanho), ordenação, grade ou lista, clique direito (abrir, postar, abrir no editor, renomear, mover, fazer cópia, baixar, favoritar, lixeira), seleção com Ctrl/Shift, arrastar para mover, painel de detalhes, visualizador em tela cheia e atalhos (Delete, F2, Enter, Ctrl+A).
+- `/spaces/recentes`, `/spaces/favoritos`, `/spaces/lixeira` (restaurar, excluir para sempre, esvaziar).
 - `/postar` Composer: mídia dos spaces, legenda, contas, formato (Reel, Story, Feed), publicar agora ou agendar, prévia no celular.
 - `/posts` Agendados, publicados e rascunhos em lista ou calendário, com métricas.
 - `/editor` Projetos de vídeo. `/editor/[id]` Editor com linha do tempo (faixas de texto, legenda, forma, imagem, vídeo e áudio; mover, cortar pontas, dividir, ímã, zoom, desfazer), prévia em Remotion com seleção e arraste direto no vídeo, painel de propriedades e um chat de IA de demonstração. Recursos: keyframes (mover, escala, rotação, opacidade), transições de entrada e saída (fade, deslizar, zoom, desfoque), velocidade (0,5x a 3x), filtros (P&B, vívido, quente, vintage, escuro, brilho, contraste, saturação), fontes, seleção múltipla com arraste em grupo, copiar/recortar/colar, excluir fechando o buraco, seleção por caixa, transição no corte entre dois clipes, inserir empurrando, travar e reordenar faixas, marcadores (M), fade de áudio e ducking (a trilha abaixa durante a narração), contorno e sombra no texto, modelos de texto (manchete, nome e cargo, destaque), stickers animados, barra de progresso, marca d'água, recortar/espelhar, encaixe com fundo desfocado, modelos de projeto (Reel 15s, Story, 16:9, quadrado) e versões salvas, agrupar clipes (Ctrl+G), guias de alinhamento e botões de alinhar na prévia, keyframes de cor e tamanho do texto, tela cheia (F), repetir trecho entre marcadores, J/K/L, zoom com Ctrl+roda e layout de celular com abas Ferramentas/Propriedades. Nas pastas, "Abrir no editor" cria um projeto com os arquivos escolhidos.
 - `/plugin` Plugin do ChatGPT e do Claude: conexões, o que o assistente pode fazer (com permissão por ação), atividade e exemplos de pedidos.
 - `/contas`, `/configuracoes`, `/notificacoes`, `/login`.
 
-Os posts e os projetos do editor ficam no `localStorage` do navegador. No editor, os vídeos e imagens aparecem como placeholders até os arquivos virem do Storage.
+Os spaces, pastas, arquivos, posts e projetos do editor ficam no `localStorage` do navegador, e os arquivos enviados ficam no IndexedDB (com prévia real de imagem e vídeo). No editor, os vídeos e imagens aparecem como placeholders até os arquivos virem do Storage.
 
 ## Organização
 
@@ -24,7 +24,7 @@ Os posts e os projetos do editor ficam no `localStorage` do navegador. No editor
 src/
   app/               rotas finas (Next.js), só chamam as features
   features/
-    spaces/          spaces, pastas e arquivos (telas, tipos e dados de exemplo)
+    spaces/          spaces, pastas e arquivos: store.ts (dados e ações), blobs.ts (arquivos enviados), hooks.ts, drive/ (explorador, menus, janelas, visualizador)
     posts/           postar, agendados, contas (telas, tipos, dados de exemplo e store)
     home/            tela inicial, que junta spaces e posts
     plugin/          integração com ChatGPT e Claude (MCP); usa spaces e posts

@@ -1,5 +1,6 @@
 // Sample projects and media until projects are stored in Supabase (phase 2).
 import { files } from '@/features/spaces/data'
+import { getDrive, liveFiles, type Drive } from '@/features/spaces/store'
 import { FPS, localStamp, type Box, type Clip, type ClipProps, type Filter, type Project, type Track, type TrackKind } from './types'
 
 /** role tells voice from music, so music can duck under the voice. */
@@ -12,12 +13,19 @@ export const audioLibrary: MediaItem[] = [
   { id: 'a-narr2', name: 'Narração — tour do hotel.mp3', kind: 'audio', duration: 12, tone: 'green', role: 'voz' },
 ]
 
-export const mediaLibrary: MediaItem[] = [
-  ...files.filter(f => f.kind !== 'text').map(f => ({ id: f.id, name: f.name, kind: f.kind === 'video' ? 'video' as const : 'imagem' as const, duration: f.duration, tone: f.tone, width: f.width, height: f.height })),
-  ...audioLibrary,
-]
+/** Files from the Spaces (live, not in the trash) plus the audio library. Rebuilt only when the Spaces change. */
+let cache: { drive: Drive; list: MediaItem[] } | null = null
+export function mediaLibrary(drive: Drive = getDrive()): MediaItem[] {
+  if (cache?.drive === drive) return cache.list
+  const list = [
+    ...liveFiles(drive).filter(f => f.kind !== 'text').map(f => ({ id: f.id, name: f.name, kind: f.kind === 'video' ? 'video' as const : f.kind === 'audio' ? 'audio' as const : 'imagem' as const, duration: f.duration, tone: f.tone, width: f.width, height: f.height, role: f.kind === 'audio' ? 'voz' as const : undefined })),
+    ...audioLibrary,
+  ]
+  cache = { drive, list }
+  return list
+}
 
-export const media = (id?: string) => mediaLibrary.find(m => m.id === id)
+export const media = (id?: string) => mediaLibrary().find(m => m.id === id)
 const fileId = (name: string) => files.find(f => f.name === name)!.id
 
 export const fullBox: Box = { x: 0, y: 0, w: 100, h: 100 }

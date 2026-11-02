@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Eye, Heart, List, MessageCircle, Plus, Repeat2, Trash2 } from 'lucide-react'
-import { files } from '@/features/spaces/data'
+import { useDrive } from '@/features/spaces/hooks'
 import { Thumb } from '@/features/spaces/Thumb'
 import { formatDateTime } from '@/lib/format'
 import { NetworkIcon, StatusPill } from './badges'
@@ -15,7 +15,7 @@ const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padSt
 const tone: Record<PostStatus, string> = { agendado: 'var(--blue-soft)', publicado: 'var(--green-soft)', erro: 'var(--red-soft)', rascunho: '#f1f3f6' }
 
 export function PostRow({ post, onDelete }: { post: Post; onDelete?: () => void }) {
-  const f = files.find(x => x.id === post.fileIds[0])
+  const f = useDrive().files.find(x => x.id === post.fileIds[0])
   return <li>
     {f && <Thumb file={f} className={s.miniThumb} showKind={false} />}
     <span className={s.rowText}><b>{post.caption}</b><small>{formatLabel[post.format]}{post.fileIds.length > 1 ? ` · ${post.fileIds.length} arquivos` : ''} · {formatDateTime(post.date)}</small></span>

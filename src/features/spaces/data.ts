@@ -1,8 +1,10 @@
 // Sample data until spaces are backed by Supabase (phase 2).
 
-export type FileKind = 'video' | 'image' | 'text'
-export type MediaFile = { id: string; folderId: string; name: string; kind: FileKind; size: number; duration?: number; width: number; height: number; createdAt: string; tone: string }
-export type Folder = { id: string; spaceId: string; name: string; description: string; tags: string[]; createdAt: string; updatedAt: string }
+export type FileKind = 'video' | 'image' | 'audio' | 'text'
+/** folderId null means the file sits at the root of its space. */
+export type MediaFile = { id: string; spaceId: string; folderId: string | null; name: string; kind: FileKind; size: number; duration?: number; width: number; height: number; createdAt: string; tone: string }
+/** parentId null means the folder sits at the root of its space. */
+export type Folder = { id: string; spaceId: string; parentId: string | null; name: string; description: string; tags: string[]; createdAt: string; updatedAt: string }
 export type Space = { id: string; name: string }
 
 export const spaces: Space[] = [
@@ -14,22 +16,25 @@ export const spaces: Space[] = [
 export const tagTone: Record<string, string> = { Reels: 'blue', Vendas: 'blue', Marketing: 'gray', Anúncios: 'red', Bastidores: 'green', Institucional: 'gray', Rascunhos: 'amber' }
 
 export const folders: Folder[] = [
-  { id: 'reels', spaceId: 'otto', name: 'Reels publicados', description: 'Vídeos que já foram ao ar no @otto.erp.', tags: ['Reels', 'Marketing'], createdAt: '2026-09-02', updatedAt: '2026-10-31' },
-  { id: 'brutos', spaceId: 'otto', name: 'Vídeos brutos', description: 'Gravações originais antes da edição.', tags: ['Bastidores'], createdAt: '2026-08-14', updatedAt: '2026-10-29' },
-  { id: 'artes', spaceId: 'otto', name: 'Artes e carrosséis', description: 'Imagens para feed e carrosséis.', tags: ['Marketing'], createdAt: '2026-08-20', updatedAt: '2026-10-25' },
-  { id: 'stories', spaceId: 'otto', name: 'Stories', description: 'Formatos verticais de 15 segundos.', tags: ['Marketing'], createdAt: '2026-09-11', updatedAt: '2026-10-30' },
-  { id: 'anuncios', spaceId: 'otto', name: 'Anúncios', description: 'Criativos para campanhas pagas.', tags: ['Anúncios', 'Vendas'], createdAt: '2026-09-21', updatedAt: '2026-10-27' },
-  { id: 'ideias', spaceId: 'otto', name: 'Ideias e roteiros', description: 'Roteiros, ganchos e legendas.', tags: ['Rascunhos'], createdAt: '2026-08-01', updatedAt: '2026-10-31' },
-  { id: 'hotel-fotos', spaceId: 'lumen', name: 'Fotos do hotel', description: 'Quartos, piscina e áreas comuns.', tags: ['Institucional'], createdAt: '2026-07-10', updatedAt: '2026-10-12' },
-  { id: 'hotel-reels', spaceId: 'lumen', name: 'Reels do app', description: 'Gravações de tela do app no celular.', tags: ['Reels'], createdAt: '2026-10-28', updatedAt: '2026-10-30' },
-  { id: 'pessoal-geral', spaceId: 'pessoal', name: 'Geral', description: 'Arquivos soltos.', tags: [], createdAt: '2026-06-01', updatedAt: '2026-10-01' },
+  { id: 'reels', spaceId: 'otto', parentId: null, name: 'Reels publicados', description: 'Vídeos que já foram ao ar no @otto.erp.', tags: ['Reels', 'Marketing'], createdAt: '2026-09-02', updatedAt: '2026-10-31' },
+  { id: 'brutos', spaceId: 'otto', parentId: null, name: 'Vídeos brutos', description: 'Gravações originais antes da edição.', tags: ['Bastidores'], createdAt: '2026-08-14', updatedAt: '2026-10-29' },
+  { id: 'artes', spaceId: 'otto', parentId: null, name: 'Artes e carrosséis', description: 'Imagens para feed e carrosséis.', tags: ['Marketing'], createdAt: '2026-08-20', updatedAt: '2026-10-25' },
+  { id: 'stories', spaceId: 'otto', parentId: null, name: 'Stories', description: 'Formatos verticais de 15 segundos.', tags: ['Marketing'], createdAt: '2026-09-11', updatedAt: '2026-10-30' },
+  { id: 'anuncios', spaceId: 'otto', parentId: null, name: 'Anúncios', description: 'Criativos para campanhas pagas.', tags: ['Anúncios', 'Vendas'], createdAt: '2026-09-21', updatedAt: '2026-10-27' },
+  { id: 'ideias', spaceId: 'otto', parentId: null, name: 'Ideias e roteiros', description: 'Roteiros, ganchos e legendas.', tags: ['Rascunhos'], createdAt: '2026-08-01', updatedAt: '2026-10-31' },
+  { id: 'hotel-fotos', spaceId: 'lumen', parentId: null, name: 'Fotos do hotel', description: 'Quartos, piscina e áreas comuns.', tags: ['Institucional'], createdAt: '2026-07-10', updatedAt: '2026-10-12' },
+  { id: 'hotel-reels', spaceId: 'lumen', parentId: null, name: 'Reels do app', description: 'Gravações de tela do app no celular.', tags: ['Reels'], createdAt: '2026-10-28', updatedAt: '2026-10-30' },
+  { id: 'pessoal-geral', spaceId: 'pessoal', parentId: null, name: 'Geral', description: 'Arquivos soltos.', tags: [], createdAt: '2026-06-01', updatedAt: '2026-10-01' },
+  { id: 'reels-chatgpt', spaceId: 'otto', parentId: 'reels', name: 'Série ChatGPT', description: 'Reels da série ChatGPT + Otto.', tags: ['Reels'], createdAt: '2026-10-20', updatedAt: '2026-10-31' },
+  { id: 'brutos-out', spaceId: 'otto', parentId: 'brutos', name: 'Outubro', description: 'Gravações de outubro.', tags: [], createdAt: '2026-10-01', updatedAt: '2026-10-29' },
 ]
 
 const tones = ['sand', 'blue', 'rose', 'green', 'violet', 'amber']
 const MB = 1024 * 1024
 let n = 0
+const spaceOf = (folderId: string) => folders.find(f => f.id === folderId)!.spaceId
 const file = (folderId: string, name: string, kind: FileKind, sizeMb: number, duration?: number, w = 1080, h = 1920): MediaFile =>
-  ({ id: `f${++n}`, folderId, name, kind, size: Math.round(sizeMb * MB), duration, width: w, height: h, createdAt: `2026-10-${String(30 - (n % 28)).padStart(2, '0')}`, tone: tones[n % tones.length] })
+  ({ id: `f${++n}`, spaceId: spaceOf(folderId), folderId, name, kind, size: Math.round(sizeMb * MB), duration, width: w, height: h, createdAt: `2026-10-${String(30 - (n % 28)).padStart(2, '0')}`, tone: tones[n % tones.length] })
 
 export const files: MediaFile[] = [
   file('reels', 'ChatGPT emite nota fiscal (A).mp4', 'video', 8.1, 49),

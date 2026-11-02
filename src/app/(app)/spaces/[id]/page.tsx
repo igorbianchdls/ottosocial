@@ -1,6 +1,6 @@
-import { SpaceView } from '@/features/spaces/SpaceView'
+import { DriveView } from '@/features/spaces/drive/DriveView'
 
 export default async function SpacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  return <SpaceView key={id} spaceId={id} />
+  return <DriveView key={id} spaceId={id} folderId={null} />
 }

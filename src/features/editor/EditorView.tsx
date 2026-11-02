@@ -10,7 +10,7 @@ import { Timeline } from './timeline/Timeline'
 import { LeftPanel, type ChatMessage } from './panels/LeftPanel'
 import { Properties } from './panels/Properties'
 import { runCommand } from './ai/commands'
-import { defaultBox, fullBox, media, type MediaItem } from './project/data'
+import { blankProject, defaultBox, fullBox, media, type MediaItem } from './project/data'
 import { addClip, clipEnd, duplicateClip, groupClips, insertClip, isLocked, projectDuration, removeClips, rippleDelete, splitAt, toggleMarker, ungroupClips, withGroup } from './project/ops'
 import { listVersions, saveVersion, type Version } from './project/versions'
 import { copyClips, pasteClips, type ClipboardItem } from './project/clipboard'
@@ -18,8 +18,8 @@ import { createFrameStore, useEditor } from './project/useEditor'
 import { FPS, type ClipProps, type Project, type TrackKind } from './project/types'
 import e from './editor.module.css'
 
-export function EditorView({ initial }: { initial: Project }) {
-  const { project, apply, transient, commit, undo, redo, canUndo, canRedo } = useEditor(initial)
+export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: string[] }) {
+  const { project, apply, transient, commit, undo, redo, canUndo, canRedo } = useEditor(initial, fileIds?.length ? () => blankProject(initial.id, fileIds) : undefined)
   const [selection, setSelection] = useState<string[]>([])
   const [insertMode, setInsertMode] = useState(false)
   const [loop, setLoop] = useState<{ start: number; end: number } | null>(null)
