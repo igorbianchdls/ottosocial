@@ -1,0 +1,66 @@
+// Demonstration of the AI editing the project. Phase 2 swaps this parser for a model that calls the same operations.
+import { defaultBox } from '../project/data'
+import { addClip, cutHead, limitTo, mapClip, projectDuration, removeClip, updateProps } from '../project/ops'
+import { FPS, type CaptionStyle, type Project } from '../project/types'
+
+export type AiResult = { project?: Project; reply: string }
+
+export const aiExamples = [
+  'Corta os 2 primeiros segundos',
+  'Adiciona o título "Seu ERP no ChatGPT"',
+  'Deixa a legenda branca',
+  'Deixa com 15 segundos',
+  'Abaixa a trilha para 10%',
+  'Tira a música',
+]
+
+const num = (s: string) => parseFloat(s.replace(',', '.'))
+
+export function runCommand(p: Project, input: string, frame: number): AiResult {
+  const text = input.trim()
+  const low = text.toLowerCase()
+  const allClips = (kind: string) => p.tracks.filter(t => t.kind === kind).flatMap(t => t.clips)
+
+  let m = low.match(/corta(?:r)?\s+(?:os\s+)?(\d+(?:[.,]\d+)?)\s+primeiros?\s+segundos?/)
+  if (m) {
+    const sec = num(m[1])
+    return { project: cutHead(p, Math.round(sec * FPS)), reply: `Cortei os ${sec} primeiros segundos e puxei tudo para o começo.` }
+  }
+
+  m = low.match(/(?:deixa|deixe|corta|limita)\s+(?:com|em|para)\s+(\d+(?:[.,]\d+)?)\s*(?:s|seg|segundos?)/)
+  if (m) {
+    const sec = num(m[1])
+    if (sec * FPS >= projectDuration(p)) return { reply: `O vídeo já tem ${Math.round(projectDuration(p) / FPS)} segundos, menos que ${sec}.` }
+    return { project: limitTo(p, Math.round(sec * FPS)), reply: `Pronto: o vídeo agora termina em ${sec} segundos.` }
+  }
+
+  m = text.match(/t[íi]tulo\s*:?\s*["“”']?([^"“”']+)["“”']?/i)
+  if (m && /adiciona|coloca|põe|poe|cria|título:/i.test(text)) {
+    const { project } = addClip(p, 'texto', { start: frame, duration: 3 * FPS, trimStart: 0, props: { text: m[1].trim(), fontSize: 76, weight: 800, color: '#ffffff', align: 'center', anim: 'pop', box: defaultBox.texto } })
+    return { project, reply: `Adicionei o título “${m[1].trim()}” na agulha, com 3 segundos.` }
+  }
+
+  m = low.match(/legendas?\s+(?:fica\s+)?(amarela|branca|caixa|com caixa|preta)/) ?? low.match(/(amarela|branca|caixa)\b.*legenda/)
+  if (m) {
+    const style: CaptionStyle = m[1].includes('caixa') || m[1] === 'preta' ? 'caixa' : m[1] as CaptionStyle
+    const caps = allClips('legenda')
+    if (!caps.length) return { reply: 'Este projeto ainda não tem legendas. Adicione pela aba Texto.' }
+    return { project: caps.reduce((acc, c) => updateProps(acc, c.id, { captionStyle: style }), p), reply: `Mudei ${caps.length} legenda${caps.length > 1 ? 's' : ''} para o estilo ${style}.` }
+  }
+
+  m = low.match(/(?:trilha|música|musica).*?(\d+)\s*%/) ?? low.match(/(\d+)\s*%.*(?:trilha|música|musica)/)
+  if (m) {
+    const vol = Math.min(100, +m[1]) / 100
+    const music = allClips('audio').filter(c => c.props.fileId?.startsWith('a-') && c.props.fileId !== 'a-narr')
+    if (!music.length) return { reply: 'Não encontrei trilha neste projeto.' }
+    return { project: music.reduce((acc, c) => mapClip(acc, c.id, x => ({ ...x, props: { ...x.props, volume: vol } })), p), reply: `Trilha no volume ${Math.round(vol * 100)}%.` }
+  }
+
+  if (/(tira|remove|sem)\s+(a\s+)?(m[úu]sica|trilha)/.test(low)) {
+    const music = allClips('audio').filter(c => c.props.fileId !== 'a-narr')
+    if (!music.length) return { reply: 'Não há trilha para tirar.' }
+    return { project: music.reduce((acc, c) => removeClip(acc, c.id), p), reply: 'Tirei a trilha. A narração continua.' }
+  }
+
+  return { reply: 'Nesta demonstração eu entendo pedidos como: ' + aiExamples.map(x => `“${x}”`).join(', ') + '. Na próxima fase a IA de verdade entra aqui, usando as mesmas ações da linha do tempo.' }
+}

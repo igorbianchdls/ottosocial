@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { ArrowLeft, Check, FolderClosed, LayoutGrid, List, Search, Send, Upload } from 'lucide-react'
+import { ArrowLeft, Check, Clapperboard, FolderClosed, LayoutGrid, List, Search, Send, Upload } from 'lucide-react'
 import { formatDate, formatDuration, formatSize } from '@/lib/format'
-import { folderFiles, folders, spaces } from './data'
+import { files, folderFiles, folders, spaces } from './data'
 import { Thumb } from './Thumb'
 import s from '@/components/ui.module.css'
 
@@ -19,6 +19,8 @@ export function FolderView({ folderId }: { folderId: string }) {
   const list = folderFiles(folder.id).filter(f => f.name.toLowerCase().includes(q.trim().toLowerCase()))
   const toggle = (id: string) => setPicked(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
   const post = () => router.push(`/postar?arquivos=${picked.join(',')}`)
+  const editable = picked.filter(id => files.find(f => f.id === id)?.kind !== 'text')
+  const edit = () => router.push(`/editor/p-${Date.now().toString(36)}?arquivos=${editable.join(',')}`)
   return <section className={s.content}>
     <div className={s.topRow}>
       <Link href={`/spaces/${space.id}`} className={s.iconBtn} aria-label="Voltar"><ArrowLeft size={18} /></Link>
@@ -27,6 +29,7 @@ export function FolderView({ folderId }: { folderId: string }) {
     <div className={s.pageHead}>
       <div><h1>{folder.name}</h1><p>{folder.description}</p></div>
       <div className={s.row}>
+        {editable.length > 0 && <button className={s.secondary} onClick={edit}><Clapperboard size={15} />Abrir no editor</button>}
         {picked.length > 0 && <button className={s.primary} onClick={post}><Send size={15} />Postar {picked.length} {picked.length === 1 ? 'arquivo' : 'arquivos'}</button>}
         <button className={s.secondary}><Upload size={15} />Enviar arquivos</button>
       </div>

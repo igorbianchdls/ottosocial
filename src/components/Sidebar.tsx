@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Blocks, CalendarClock, FolderClosed, House, LogOut, PanelLeft, Send, Settings, Sparkles, UsersRound } from 'lucide-react'
+import { Bell, Blocks, CalendarClock, Clapperboard, FolderClosed, House, LogOut, PanelLeft, Send, Settings, Sparkles, UsersRound } from 'lucide-react'
 import { folders, spaces } from '@/features/spaces/data'
 import s from './ui.module.css'
 
@@ -17,6 +17,7 @@ export function Sidebar() {
     {item('/', 'Início', House, path === '/')}
     {item('/spaces', 'Spaces', FolderClosed, inSpaces)}
     {inSpaces && <div className={s.subNav}>{spaces.map(p => { const on = path === `/spaces/${p.id}` || folderSpace === p.id; return <Link key={p.id} href={`/spaces/${p.id}`} className={`${s.subItem} ${on ? s.subOn : ''}`}>{p.name}</Link> })}</div>}
+    {item('/editor', 'Editor', Clapperboard, path.startsWith('/editor'))}
     {item('/postar', 'Postar', Send, path === '/postar')}
     {item('/posts', 'Agendados', CalendarClock, path === '/posts', <span className={s.countBadge}>3</span>)}
     {item('/contas', 'Contas', UsersRound, path === '/contas')}
