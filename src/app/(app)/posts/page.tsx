@@ -1,5 +1,6 @@
 import { PostsView } from '@/features/posts/PostsView'
 
-export default function PostsPage() {
-  return <PostsView />
+export default async function PostsPage({ searchParams }: { searchParams: Promise<{ post?: string }> }) {
+  const { post } = await searchParams
+  return <PostsView key={post ?? 'todos'} openPostId={post} />
 }

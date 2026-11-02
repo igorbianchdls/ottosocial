@@ -46,7 +46,7 @@ export function useViewMode() {
   return [view, change] as const
 }
 
-export function DriveView({ spaceId, folderId }: { spaceId?: string; folderId: string | null }) {
+export function DriveView({ spaceId, folderId, openFileId }: { spaceId?: string; folderId: string | null; openFileId?: string }) {
   const drive = useDrive()
   const folder = folderId ? drive.folders.find(f => f.id === folderId) : undefined
   const space = drive.spaces.find(x => x.id === (folder?.spaceId ?? spaceId))
@@ -90,6 +90,19 @@ export function DriveView({ spaceId, folderId }: { spaceId?: string; folderId: s
   const all: Item[] = [...folders.map(folder => ({ type: 'folder' as const, folder })), ...files.map(file => ({ type: 'file' as const, file }))]
   const byKey = new Map(all.map(i => [itemKey(i), i]))
   const selected = selection.map(k => byKey.get(k)).filter((i): i is Item => !!i)
+
+  // Opened from the global search: select the file and show it in the viewer once.
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    if (shown || !openFileId) return
+    const f = files.find(x => x.id === openFileId)
+    if (!f) return
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setShown(true)
+    setSelection([`f:${f.id}`])
+    /* eslint-enable react-hooks/set-state-in-effect */
+    act.open({ type: 'file', file: f }, files)
+  }, [openFileId, files, shown, act])
 
   // Keyboard: Delete, F2, Enter, Ctrl+A, Escape — like Drive.
   useEffect(() => {

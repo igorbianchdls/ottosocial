@@ -37,14 +37,14 @@ export function PostRow({ post, onDelete, onOpen, onMenu }: { post: Post; onDele
 type Toast = { text: string; undo?: () => void } | null
 type Menu = { x: number; y: number; post: Post } | null
 
-export function PostsView() {
+export function PostsView({ openPostId }: { openPostId?: string }) {
   const router = useRouter()
   const { posts } = usePosts()
   const [mode, setMode] = useState<'lista' | 'semana' | 'mes'>('lista')
   const [status, setStatus] = useState<PostStatus | 'todos'>('todos')
   const [q, setQ] = useState('')
   const [anchor, setAnchor] = useState(() => new Date())
-  const [open, setOpen] = useState<string | null>(null)
+  const [open, setOpen] = useState<string | null>(openPostId ?? null)
   const [menu, setMenu] = useState<Menu>(null)
   const [toast, setToast] = useState<Toast>(null)
   const [dragOver, setDragOver] = useState<string | null>(null)

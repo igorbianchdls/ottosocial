@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Blocks, CalendarClock, Clapperboard, Clock, FolderClosed, House, LogOut, PanelLeft, Send, Settings, Sparkles, Star, Trash2, UsersRound } from 'lucide-react'
+import { Bell, Blocks, CalendarClock, Clapperboard, Clock, FolderClosed, House, LogOut, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2, UsersRound } from 'lucide-react'
 import { useDrive } from '@/features/spaces/hooks'
+import { openPalette } from './CommandPalette'
 import s from './ui.module.css'
 
 export function Sidebar() {
@@ -15,6 +16,7 @@ export function Sidebar() {
     <Link href={href} className={`${s.navItem} ${on ? s.navOn : ''}`} aria-current={on ? 'page' : undefined}><Icon size={18} />{label}{extra}</Link>
   return <aside className={s.sidebar}>
     <div className={s.logo}><Link href="/"><span className={s.logoMark}><Sparkles size={16} /></span>OttoSocial</Link><button className={s.iconBtn} aria-label="Recolher menu"><PanelLeft size={18} /></button></div>
+    <button className={s.searchBtn} onClick={openPalette}><Search size={16} />Buscar<kbd>Ctrl K</kbd></button>
     {item('/', 'Início', House, path === '/')}
     {item('/spaces', 'Spaces', FolderClosed, inSpaces)}
     {inSpaces && <div className={s.subNav}>

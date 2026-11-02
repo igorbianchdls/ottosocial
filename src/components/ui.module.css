@@ -233,3 +233,6 @@
 .thumbMedia { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .subDivider { height: 1px; margin: 4px 8px; background: var(--line); }
 .subIcon { color: var(--muted); margin-right: 8px; flex-shrink: 0; }
+.searchBtn { display: flex; align-items: center; gap: 9px; height: 36px; margin: 0 0 8px; padding: 0 10px; border-radius: 10px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--muted); font-size: 13.5px; }
+.searchBtn:hover { color: var(--ink); box-shadow: inset 0 0 0 1px #c9cfd9; }
+.searchBtn kbd { margin-left: auto; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line-strong); font: inherit; font-size: 11px; color: var(--muted); }

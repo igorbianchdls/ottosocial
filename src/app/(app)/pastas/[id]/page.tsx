@@ -1,6 +1,7 @@
 import { DriveView } from '@/features/spaces/drive/DriveView'
 
-export default async function FolderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function FolderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ arquivo?: string }> }) {
   const { id } = await params
-  return <DriveView key={id} folderId={id} />
+  const { arquivo } = await searchParams
+  return <DriveView key={id} folderId={id} openFileId={arquivo} />
 }
