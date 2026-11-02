@@ -9,8 +9,22 @@ export type Box = { x: number; y: number; w: number; h: number }
 export type TextAnim = 'surgir' | 'pop' | 'digitar' | 'nenhuma'
 export type CaptionStyle = 'amarela' | 'branca' | 'caixa'
 
+export type FontId = 'geist' | 'bebas' | 'serif' | 'caveat' | 'mono'
+/** A point in time, relative to the clip start, with the clip's motion at that moment. */
+export type Keyframe = { frame: number; dx: number; dy: number; scale: number; rotation: number; opacity: number }
+export type Motion = Omit<Keyframe, 'frame'>
+export type TransitionType = 'fade' | 'deslizar' | 'zoom' | 'desfoque'
+export type Transition = { type: TransitionType; frames: number }
+/** Color adjustments for video and images. 1 is unchanged. */
+export type Filter = { preset?: string; brightness: number; contrast: number; saturation: number; grayscale: number; sepia: number }
+
 export type ClipProps = {
   fileId?: string
+  font?: FontId
+  keyframes?: Keyframe[]
+  transIn?: Transition
+  transOut?: Transition
+  filter?: Filter
   text?: string
   fontSize?: number
   color?: string
@@ -26,8 +40,8 @@ export type ClipProps = {
   captionStyle?: CaptionStyle
 }
 
-/** Times are in frames. trimStart is where the clip starts inside its media file. */
-export type Clip = { id: string; start: number; duration: number; trimStart: number; props: ClipProps }
+/** Times are in timeline frames, except trimStart, which is in frames of the media file. speed 2 plays the file twice as fast. */
+export type Clip = { id: string; start: number; duration: number; trimStart: number; speed?: number; props: ClipProps }
 export type Track = { id: string; kind: TrackKind; clips: Clip[]; muted?: boolean; hidden?: boolean }
 export type Project = { id: string; name: string; format: Format; background: string; tracks: Track[]; updatedAt: string }
 

@@ -1,7 +1,7 @@
 // Demonstration of the AI editing the project. Phase 2 swaps this parser for a model that calls the same operations.
-import { defaultBox } from '../project/data'
-import { addClip, cutHead, limitTo, mapClip, projectDuration, removeClip, updateProps } from '../project/ops'
-import { FPS, type CaptionStyle, type Project } from '../project/types'
+import { defaultBox, filterPresets } from '../project/data'
+import { addClip, cutHead, limitTo, mapClip, projectDuration, removeClip, setSpeed, updateProps } from '../project/ops'
+import { FPS, visualKinds, type CaptionStyle, type Project, type TransitionType } from '../project/types'
 
 export type AiResult = { project?: Project; reply: string }
 
@@ -12,6 +12,9 @@ export const aiExamples = [
   'Deixa com 15 segundos',
   'Abaixa a trilha para 10%',
   'Tira a música',
+  'Acelera o vídeo para 2x',
+  'Deixa o vídeo preto e branco',
+  'Coloca fade em tudo',
 ]
 
 const num = (s: string) => parseFloat(s.replace(',', '.'))
@@ -60,6 +63,29 @@ export function runCommand(p: Project, input: string, frame: number): AiResult {
     const music = allClips('audio').filter(c => c.props.fileId !== 'a-narr')
     if (!music.length) return { reply: 'Não há trilha para tirar.' }
     return { project: music.reduce((acc, c) => removeClip(acc, c.id), p), reply: 'Tirei a trilha. A narração continua.' }
+  }
+
+  m = low.match(/(?:acelera|deixa|coloca|velocidade)\D*(\d+(?:[.,]\d+)?)\s*x/)
+  if (m) {
+    const speed = num(m[1])
+    const videos = allClips('video')
+    if (!videos.length) return { reply: 'Não há vídeo neste projeto.' }
+    if (![0.5, 1, 1.5, 2, 3].includes(speed)) return { reply: 'Use 0.5x, 1x, 1.5x, 2x ou 3x.' }
+    return { project: videos.reduce((acc, c) => setSpeed(acc, c.id, speed), p), reply: `Coloquei ${videos.length > 1 ? 'os vídeos' : 'o vídeo'} em ${speed}x.` }
+  }
+
+  const preset = filterPresets.find(f => f.filter && (low.includes(f.label.toLowerCase()) || (f.id === 'pb' && /preto e branco/.test(low))))
+  if (preset && /(filtro|deixa|aplica|coloca|põe)/.test(low)) {
+    const media = [...allClips('video'), ...allClips('imagem')]
+    return { project: media.reduce((acc, c) => updateProps(acc, c.id, { filter: preset.filter }), p), reply: `Apliquei o filtro ${preset.label} em ${media.length} clipe${media.length > 1 ? 's' : ''}.` }
+  }
+
+  m = low.match(/(fade|deslizar|zoom|desfoque)\s+em\s+tudo/)
+  if (m) {
+    const type = m[1] as TransitionType
+    const clips = p.tracks.filter(t => visualKinds.includes(t.kind)).flatMap(t => t.clips)
+    const t = { type, frames: 9 }
+    return { project: clips.reduce((acc, c) => updateProps(acc, c.id, { transIn: t, transOut: t }), p), reply: `Coloquei transição ${type} na entrada e na saída de ${clips.length} clipes.` }
   }
 
   return { reply: 'Nesta demonstração eu entendo pedidos como: ' + aiExamples.map(x => `“${x}”`).join(', ') + '. Na próxima fase a IA de verdade entra aqui, usando as mesmas ações da linha do tempo.' }

@@ -12,7 +12,7 @@ Interface completa com dados de exemplo, sem backend:
 - `/pastas/[id]` Arquivos da pasta: grade ou lista, seleção múltipla e "Postar" com os arquivos escolhidos.
 - `/postar` Composer: mídia dos spaces, legenda, contas, formato (Reel, Story, Feed), publicar agora ou agendar, prévia no celular.
 - `/posts` Agendados, publicados e rascunhos em lista ou calendário, com métricas.
-- `/editor` Projetos de vídeo. `/editor/[id]` Editor com linha do tempo (faixas de texto, legenda, forma, imagem, vídeo e áudio; mover, cortar pontas, dividir, ímã, zoom, desfazer), prévia em Remotion com seleção e arraste direto no vídeo, painel de propriedades e um chat de IA de demonstração. Nas pastas, "Abrir no editor" cria um projeto com os arquivos escolhidos.
+- `/editor` Projetos de vídeo. `/editor/[id]` Editor com linha do tempo (faixas de texto, legenda, forma, imagem, vídeo e áudio; mover, cortar pontas, dividir, ímã, zoom, desfazer), prévia em Remotion com seleção e arraste direto no vídeo, painel de propriedades e um chat de IA de demonstração. Recursos: keyframes (mover, escala, rotação, opacidade), transições de entrada e saída (fade, deslizar, zoom, desfoque), velocidade (0,5x a 3x), filtros (P&B, vívido, quente, vintage, escuro, brilho, contraste, saturação), fontes, seleção múltipla com arraste em grupo, copiar/recortar/colar e excluir fechando o buraco. Nas pastas, "Abrir no editor" cria um projeto com os arquivos escolhidos.
 - `/plugin` Plugin do ChatGPT e do Claude: conexões, o que o assistente pode fazer (com permissão por ação), atividade e exemplos de pedidos.
 - `/contas`, `/configuracoes`, `/notificacoes`, `/login`.
 
@@ -29,11 +29,11 @@ src/
     home/            tela inicial, que junta spaces e posts
     plugin/          integração com ChatGPT e Claude (MCP); usa spaces e posts
     editor/          editor de vídeo
-      project/       tipos, operações (mover, cortar, dividir...), dados de exemplo e o estado com desfazer
-      timeline/      linha do tempo
+      project/       tipos, operações (mover, cortar, dividir, velocidade...), keyframes, copiar e colar, dados de exemplo e o estado com desfazer
+      timeline/      linha do tempo e os clipes (com keyframes, transições e velocidade)
       preview/       Remotion Player e a camada de seleção sobre o vídeo
       panels/        painel da esquerda (mídia, texto, formas, áudio, IA) e propriedades
-      remotion/      a composição que lê o projeto e desenha o vídeo
+      remotion/      a composição que lê o projeto e desenha o vídeo; blocks/ por tipo e animate.ts (keyframes, transições, filtros, fontes)
       ai/            ações da IA (hoje um parser de demonstração; usa as mesmas operações da linha do tempo)
   components/        Sidebar e o CSS base compartilhado
   lib/               utilitários gerais (formatação)
@@ -45,7 +45,7 @@ Cada feature ganha `server/` (banco, storage, publicação) e `api/` só quando 
 
 - Fase 2: login, banco e arquivos no Supabase (Auth, Postgres e Storage).
 - Fase 3: publicação de verdade (Postiz ou API do Instagram).
-- Editor: exportação em MP4 (Remotion Lambda) de volta para o Space, IA de verdade usando as operações de `editor/project/ops.ts`, keyframes, transições e legenda automática.
+- Editor: exportação em MP4 (Remotion Lambda) de volta para o Space, IA de verdade usando as operações de `editor/project/ops.ts` e legenda automática.
 
 ## Desenvolvimento
 

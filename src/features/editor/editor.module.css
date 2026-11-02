@@ -86,7 +86,8 @@
 .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .four label { position: relative; }
 .four label span { position: absolute; left: 7px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 11px; font-weight: 600; pointer-events: none; }
-.field .four input:not([type='range']) { padding: 0 4px 0 20px; font-size: 12.5px; }
+.four input { width: 100%; min-width: 0; height: 34px; padding: 0 4px 0 20px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--panel); font: inherit; font-size: 12.5px; color: var(--ink); outline: none; }
+.four input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
 .seg { display: flex; padding: 3px; gap: 2px; border-radius: 10px; border: 1px solid var(--line-strong); }
 .seg button { flex: 1; height: 28px; border-radius: 7px; color: var(--muted); font-size: 12.5px; font-weight: 500; }
 .seg .segOn { background: var(--soft); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
@@ -196,3 +197,32 @@
   .time { margin-left: 4px; }
   .format { display: none; }
 }
+
+/* Properties sections: speed, filter, transitions, keyframes */
+.section { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sectionHead b { font-size: 13px; }
+.filterGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.filterGrid button { height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); color: var(--text); font-size: 12px; font-weight: 500; }
+.filterGrid button:hover { background: var(--soft); }
+.filterGrid .segOn { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: none; }
+.transRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+.kfNav { display: inline-flex; gap: 2px; }
+.kfNav button { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: var(--text); border: 1px solid var(--line-strong); }
+.kfNav button:hover:not(:disabled) { background: var(--soft); }
+.kfNav button:disabled { opacity: .35; cursor: default; }
+.kfNav .kfOn { background: #fef3c7; border-color: #f59e0b; color: #b45309; }
+.kfNav .kfOn svg { fill: currentColor; }
+.linkBtn { align-self: flex-start; color: var(--red); font-size: 12px; font-weight: 500; }
+.linkBtn:hover { text-decoration: underline; }
+.field input[type='range']:disabled { opacity: .4; }
+.wideAction { display: flex; align-items: center; justify-content: center; gap: 7px; height: 34px; border-radius: 10px; border: 1px solid var(--line-strong); font-size: 12.5px; color: var(--text); }
+.wideAction:hover { background: var(--soft); color: var(--ink); }
+
+/* Timeline marks: transitions, speed and keyframes */
+.trans { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.transIn { left: 0; background: linear-gradient(90deg, rgb(255 255 255 / .75), rgb(255 255 255 / 0)); border-left: 2px solid rgb(17 24 39 / .45); }
+.transOut { right: 0; background: linear-gradient(270deg, rgb(255 255 255 / .75), rgb(255 255 255 / 0)); border-right: 2px solid rgb(17 24 39 / .45); }
+.speedTag { margin-left: 4px; padding: 0 5px; border-radius: 5px; background: rgb(0 0 0 / .35); color: #fff; font-style: normal; font-size: 10.5px; text-shadow: none; }
+.diamond { position: absolute; bottom: 3px; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: #f59e0b; border: 1.5px solid #fff; border-radius: 2px; box-shadow: 0 0 0 1px rgb(17 24 39 / .25); z-index: 2; cursor: pointer; padding: 0; }
+.diamond:hover { background: #fbbf24; }

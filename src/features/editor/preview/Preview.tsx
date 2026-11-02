@@ -5,7 +5,9 @@ import { Player, type PlayerRef } from '@remotion/player'
 import { EditorComposition } from '../remotion/Composition'
 import { clipEnd, findClip, projectDuration, updateProps } from '../project/ops'
 import { useFrame, type FrameStore } from '../project/useEditor'
-import { FPS, canvasSize, kindLabel, type Box, type Project } from '../project/types'
+import { FPS, canvasSize, kindLabel, type Box, type Clip, type Project } from '../project/types'
+import { motionAt } from '../project/keyframes'
+import { motionTransform } from '../remotion/animate'
 import e from '../editor.module.css'
 
 type Props = {
@@ -98,11 +100,12 @@ function Overlay({ project, frames, selectedId, onSelect, transient, commit, siz
     el.addEventListener('pointercancel', up)
   }
 
-  const boxCss = (b: Box) => ({ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` })
+  // Follows the keyframes so the selection stays on the element while it moves.
+  const boxCss = (b: Box, c: Clip) => ({ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`, transform: motionTransform(motionAt(c.props.keyframes, frame - c.start), size.width, size.height) })
   return <div className={e.overlay} onPointerDown={() => onSelect(null)}>
-    {visible.map(({ track, clip }) => clip.props.box && <div key={clip.id} className={`${e.hit} ${clip.id === selectedId ? e.hitOn : ''}`} style={boxCss(clip.props.box)}
+    {visible.map(({ track, clip }) => clip.props.box && <div key={clip.id} className={`${e.hit} ${clip.id === selectedId ? e.hitOn : ''}`} style={boxCss(clip.props.box, clip)}
       onPointerDown={ev => drag(ev, clip.id, 'move')} title={kindLabel[track.kind]} />)}
-    {selected?.clip.props.box && frame >= selected.clip.start && frame < clipEnd(selected.clip) && <div className={e.selBox} style={boxCss(selected.clip.props.box)}>
+    {selected?.clip.props.box && frame >= selected.clip.start && frame < clipEnd(selected.clip) && <div className={e.selBox} style={boxCss(selected.clip.props.box, selected.clip)}>
       <span className={e.selTag}>{kindLabel[selected.track.kind]}</span>
       <span className={e.resize} onPointerDown={ev => drag(ev, selected.clip.id, 'resize')} />
     </div>}

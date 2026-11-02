@@ -1,5 +1,6 @@
 // Pure edits on a project. The timeline, the properties panel and the AI all go through these.
 import { media } from './data'
+import { fitKeyframes } from './keyframes'
 import { FPS, kindRank, localStamp, type Clip, type ClipProps, type Project, type Track, type TrackKind } from './types'
 
 export const MIN_CLIP = 5
@@ -17,7 +18,7 @@ export function findClip(p: Project, id: string | null): { track: Track; clip: C
 export function maxDuration(kind: TrackKind, c: Clip) {
   if (kind !== 'video' && kind !== 'audio') return Infinity
   const m = media(c.props.fileId)
-  return m?.duration ? Math.round(m.duration * FPS) - c.trimStart : Infinity
+  return m?.duration ? Math.floor((Math.round(m.duration * FPS) - c.trimStart) / (c.speed ?? 1)) : Infinity
 }
 
 const touch = (p: Project): Project => ({ ...p, updatedAt: localStamp() })
@@ -81,10 +82,12 @@ export function trimLeft(p: Project, id: string, newStart: number): Project {
   if (!found) return p
   const { clip, track } = found
   const isMedia = track.kind === 'video' || track.kind === 'audio'
-  const lowest = isMedia ? clip.start - clip.trimStart : 0
+  const speed = clip.speed ?? 1
+  const lowest = isMedia ? clip.start - Math.floor(clip.trimStart / speed) : 0
   const start = Math.round(Math.min(clipEnd(clip) - MIN_CLIP, Math.max(lowest, 0, newStart)))
   const delta = start - clip.start
-  return mapClip(p, id, c => ({ ...c, start, duration: c.duration - delta, trimStart: isMedia ? c.trimStart + delta : c.trimStart }))
+  const duration = clip.duration - delta
+  return mapClip(p, id, c => ({ ...c, start, duration, trimStart: isMedia ? Math.max(0, c.trimStart + Math.round(delta * speed)) : c.trimStart, props: { ...c.props, keyframes: fitKeyframes(c.props.keyframes, delta, duration) } }))
 }
 
 export function trimRight(p: Project, id: string, newEnd: number): Project {
@@ -102,8 +105,9 @@ export function splitAt(p: Project, id: string, frame: number): { project: Proje
   if (frame <= clip.start + 1 || frame >= clipEnd(clip) - 1) return null
   const isMedia = track.kind === 'video' || track.kind === 'audio'
   const rightId = uid()
-  const left: Clip = { ...clip, duration: frame - clip.start }
-  const right: Clip = { ...clip, id: rightId, start: frame, duration: clipEnd(clip) - frame, trimStart: isMedia ? clip.trimStart + frame - clip.start : clip.trimStart }
+  const cut = frame - clip.start, rest = clipEnd(clip) - frame
+  const left: Clip = { ...clip, duration: cut, props: { ...clip.props, transOut: undefined, keyframes: fitKeyframes(clip.props.keyframes, 0, cut) } }
+  const right: Clip = { ...clip, id: rightId, start: frame, duration: rest, trimStart: isMedia ? clip.trimStart + Math.round(cut * (clip.speed ?? 1)) : clip.trimStart, props: { ...clip.props, transIn: undefined, keyframes: fitKeyframes(clip.props.keyframes, cut, rest) } }
   return { project: touch({ ...p, tracks: p.tracks.map(t => t === track ? { ...t, clips: t.clips.flatMap(c => c.id === id ? [left, right] : [c]) } : t) }), id: rightId }
 }
 
@@ -123,11 +127,54 @@ export function cutHead(p: Project, frames: number): Project {
     if (c.start >= frames) return [{ ...c, start: c.start - frames }]
     const cut = frames - c.start
     const isMedia = t.kind === 'video' || t.kind === 'audio'
-    return [{ ...c, start: 0, duration: c.duration - cut, trimStart: isMedia ? c.trimStart + cut : c.trimStart }]
+    return [{ ...c, start: 0, duration: c.duration - cut, trimStart: isMedia ? c.trimStart + Math.round(cut * (c.speed ?? 1)) : c.trimStart, props: { ...c.props, keyframes: fitKeyframes(c.props.keyframes, cut, c.duration - cut) } }]
   }) })) }))
 }
 
 /** Ends the whole video at `frames`. */
 export function limitTo(p: Project, frames: number): Project {
   return normalize(touch({ ...p, tracks: p.tracks.map(t => ({ ...t, clips: t.clips.filter(c => c.start < frames - MIN_CLIP).map(c => ({ ...c, duration: Math.min(c.duration, frames - c.start) })) })) }))
+}
+
+export const removeClips = (p: Project, ids: string[]) => normalize(touch({ ...p, tracks: p.tracks.map(t => ({ ...t, clips: t.clips.filter(c => !ids.includes(c.id)) })) }))
+
+/** Deletes and closes the gap: later clips on the same track move left. */
+export function rippleDelete(p: Project, ids: string[]): Project {
+  return normalize(touch({ ...p, tracks: p.tracks.map(t => {
+    const gone = t.clips.filter(c => ids.includes(c.id))
+    if (!gone.length) return t
+    return { ...t, clips: t.clips.filter(c => !ids.includes(c.id)).map(c => ({ ...c, start: Math.max(0, c.start - gone.filter(g => g.start < c.start).reduce((n, g) => n + g.duration, 0)) })) }
+  }) }))
+}
+
+/** Moves several clips by the same amount, each on its own track. */
+export function moveClips(p: Project, ids: string[], df: number): Project {
+  const moving = p.tracks.flatMap(t => t.clips).filter(c => ids.includes(c.id))
+  const shift = Math.max(df, -Math.min(...moving.map(c => c.start)))
+  return touch({ ...p, tracks: p.tracks.map(t => ({ ...t, clips: t.clips.map(c => ids.includes(c.id) ? { ...c, start: c.start + shift } : c) })) })
+}
+
+const groupOverlaps = (p: Project, ids: string[]) =>
+  p.tracks.some(t => t.clips.some(c => ids.includes(c.id) && overlaps(t, c.start, c.duration, c.id)))
+
+/** Like moveClips, but stops short of the first position where a moved clip would overlap another. */
+export function moveClipsClamped(p: Project, ids: string[], df: number): Project {
+  const step = df > 0 ? -1 : 1
+  for (let s = df; s !== 0; s += step) {
+    const next = moveClips(p, ids, s)
+    if (!groupOverlaps(next, ids)) return next
+  }
+  return p
+}
+
+export const settleAll = (p: Project, ids: string[]) => ids.reduce((acc, id) => settle(acc, id), p)
+
+/** Changes speed keeping the same part of the file: 2x halves the clip on the timeline. */
+export function setSpeed(p: Project, id: string, speed: number): Project {
+  const found = findClip(p, id)
+  if (!found) return p
+  const old = found.clip.speed ?? 1
+  const next = { ...found.clip, speed }
+  const duration = Math.max(MIN_CLIP, Math.min(maxDuration(found.track.kind, next), Math.round(found.clip.duration * old / speed)))
+  return settle(mapClip(p, id, c => ({ ...c, speed, duration })), id)
 }

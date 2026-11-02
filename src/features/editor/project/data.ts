@@ -1,6 +1,6 @@
 // Sample projects and media until projects are stored in Supabase (phase 2).
 import { files } from '@/features/spaces/data'
-import { FPS, localStamp, type Box, type Clip, type ClipProps, type Project, type Track, type TrackKind } from './types'
+import { FPS, localStamp, type Box, type Clip, type ClipProps, type Filter, type Project, type Track, type TrackKind } from './types'
 
 export type MediaItem = { id: string; name: string; kind: 'video' | 'imagem' | 'audio'; duration?: number; tone: string; width?: number; height?: number }
 
@@ -32,7 +32,7 @@ let n = 0
 const s = (sec: number) => Math.round(sec * FPS)
 const clip = (start: number, duration: number, props: ClipProps, trimStart = 0): Clip => ({ id: `s${++n}`, start: s(start), duration: s(duration), trimStart: s(trimStart), props })
 const track = (kind: TrackKind, clips: Clip[]): Track => ({ id: `t${++n}`, kind, clips })
-const title = (text: string, extra: ClipProps = {}): ClipProps => ({ text, fontSize: 76, weight: 800, color: '#ffffff', align: 'center', anim: 'pop', box: defaultBox.texto, ...extra })
+const title = (text: string, extra: ClipProps = {}): ClipProps => ({ text, fontSize: 76, weight: 800, color: '#ffffff', align: 'center', anim: 'pop', box: defaultBox.texto, transOut: { type: 'fade', frames: 6 }, ...extra })
 const caption = (text: string): ClipProps => ({ text, captionStyle: 'amarela', box: defaultBox.legenda })
 
 export const sampleProjects: Project[] = [
@@ -97,7 +97,18 @@ export const textPresets: { label: string; props: ClipProps; kind: 'texto' | 'le
 ]
 
 export const shapePresets: { label: string; props: ClipProps }[] = [
-  { label: 'Retângulo', props: { shape: 'retangulo', bg: '#3b82f6', radius: 24, opacity: 1, box: defaultBox.forma } },
-  { label: 'Círculo', props: { shape: 'circulo', bg: '#f43f5e', opacity: 1, box: { x: 35, y: 40, w: 30, h: 17 } } },
-  { label: 'Faixa', props: { shape: 'retangulo', bg: '#111827', radius: 0, opacity: 0.7, box: { x: 0, y: 66, w: 100, h: 18 } } },
+  { label: 'Retângulo', props: { transIn: { type: 'zoom', frames: 8 }, shape: 'retangulo', bg: '#3b82f6', radius: 24, opacity: 1, box: defaultBox.forma } },
+  { label: 'Círculo', props: { transIn: { type: 'zoom', frames: 8 }, shape: 'circulo', bg: '#f43f5e', opacity: 1, box: { x: 35, y: 40, w: 30, h: 17 } } },
+  { label: 'Faixa', props: { transIn: { type: 'fade', frames: 8 }, shape: 'retangulo', bg: '#111827', radius: 0, opacity: 0.7, box: { x: 0, y: 66, w: 100, h: 18 } } },
 ]
+
+export const neutralFilter: Filter = { brightness: 1, contrast: 1, saturation: 1, grayscale: 0, sepia: 0 }
+export const filterPresets: { id: string; label: string; filter?: Filter }[] = [
+  { id: 'nenhum', label: 'Nenhum' },
+  { id: 'pb', label: 'P&B', filter: { ...neutralFilter, preset: 'pb', grayscale: 1, contrast: 1.1 } },
+  { id: 'vivido', label: 'Vívido', filter: { ...neutralFilter, preset: 'vivido', saturation: 1.5, contrast: 1.1 } },
+  { id: 'quente', label: 'Quente', filter: { ...neutralFilter, preset: 'quente', sepia: 0.25, saturation: 1.2, brightness: 1.05 } },
+  { id: 'vintage', label: 'Vintage', filter: { ...neutralFilter, preset: 'vintage', sepia: 0.45, contrast: 0.9, brightness: 1.05, saturation: 0.8 } },
+  { id: 'escuro', label: 'Escuro', filter: { ...neutralFilter, preset: 'escuro', brightness: 0.8, contrast: 1.2 } },
+]
+export const speeds = [0.5, 1, 1.5, 2, 3]
