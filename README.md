@@ -75,4 +75,12 @@ O schema está em `supabase/migrations/20261102000001_init.sql`: workspaces e me
 - convites `workspace_invites`, aceitos com `accept_invite(token)` pelo e-mail convidado;
 - `tags` em arquivos.
 
+`20261102000003_signup_workspace.sql`: o cadastro cria o perfil e o primeiro workspace (com quem se cadastrou como dono), e apagar uma pessoa não apaga o que ela criou para a equipe.
+
 Para aplicar: Supabase → SQL Editor → colar os arquivos em ordem → Run (ou `supabase db push`).
+
+### Login
+
+Login, cadastro, "esqueci a senha" e sair usam o Supabase Auth (`src/lib/supabase`). O `src/proxy.ts` mantém a sessão nos cookies e manda quem não entrou para `/login` (ou `/apresentacao`, na raiz). Links dos e-mails do Supabase voltam por `/auth/callback`; a senha nova é criada em `/nova-senha`. Sem as variáveis `NEXT_PUBLIC_SUPABASE_*` o app roda como demonstração, sem login.
+
+Copie `.env.example` para `.env.local` e preencha a chave publicável do projeto.

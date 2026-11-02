@@ -46,10 +46,16 @@ const subscribe = (l: () => void) => { listeners.add(l); return () => { listener
 export const getSettings = () => { ensure(); return state }
 export const useSettings = () => useSyncExternalStore(subscribe, getSettings, () => defaults)
 
-export function updateSettings<K extends keyof Settings>(section: K, patch: Partial<Settings[K]>) {
+type RemoteSaver = <K extends keyof Settings>(section: K, value: Settings[K]) => void
+let remote: RemoteSaver | null = null
+/** Signed in, the profile and workspace sections are also saved to the database (see AccountSync). */
+export function setRemoteSaver(fn: RemoteSaver | null) { remote = fn }
+
+export function updateSettings<K extends keyof Settings>(section: K, patch: Partial<Settings[K]>, opts: { fromServer?: boolean } = {}) {
   state = { ...getSettings(), [section]: { ...getSettings()[section], ...patch } }
   try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* storage blocked */ }
   listeners.forEach(l => l())
+  if (!opts.fromServer) remote?.(section, state[section])
 }
 export function resetSettings() {
   state = defaults

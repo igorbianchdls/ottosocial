@@ -40,6 +40,6 @@ export function Sidebar() {
       {item('/configuracoes', 'Configurações', Settings, path.startsWith('/configuracoes'))}
       {item('/notificacoes', 'Notificações', Bell, path === '/notificacoes', unread > 0 ? <span className={s.badge}>{unread}</span> : undefined)}
     </div>
-    <div className={s.user}><span className={s.avatar} style={{ background: profile.color }}>{profile.name.trim()[0]?.toUpperCase() ?? '?'}</span><span><b>{profile.name || 'Sem nome'}</b><small>Workspace {workspace.name}</small></span><Link href="/login" className={s.iconBtn} aria-label="Sair" title="Sair" onClick={signOut}><LogOut size={17} /></Link></div>
+    <div className={s.user}><span className={s.avatar} style={{ background: profile.color }}>{profile.name.trim()[0]?.toUpperCase() ?? '?'}</span><span><b>{profile.name || 'Sem nome'}</b><small>Workspace {workspace.name}</small></span><button type="button" className={s.iconBtn} aria-label="Sair" title="Sair" onClick={() => signOut()}><LogOut size={17} /></button></div>
   </aside>
 }
