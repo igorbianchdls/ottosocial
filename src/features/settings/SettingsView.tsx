@@ -7,9 +7,11 @@ import { formatSize } from '@/lib/format'
 import { STORAGE_LIMIT } from '@/features/spaces/data'
 import { useDrive } from '@/features/spaces/hooks'
 import { liveFiles, trashed } from '@/features/spaces/store'
-import { accounts, formatLabel, type PostFormat } from '@/features/posts/data'
+import { formatLabel, type PostFormat } from '@/features/posts/data'
+import { useAccounts } from '@/features/posts/accounts'
 import { NetworkIcon } from '@/features/posts/badges'
 import { kindInfo, type NotificationKind } from '../notifications/data'
+import { startTour } from '@/components/Tour'
 import { APP_KEYS, resetSettings, updateSettings, useSettings, type Theme } from './store'
 import s from '@/components/ui.module.css'
 import c from './settings.module.css'
@@ -118,6 +120,7 @@ function Notifications({ onSave }: { onSave: () => void }) {
 
 function Posting({ onSave }: { onSave: () => void }) {
   const { posting } = useSettings()
+  const accounts = useAccounts()
   const set = (patch: Partial<typeof posting>) => { updateSettings('posting', patch); onSave() }
   return <Card title="Publicação" text="Valores que já vêm preenchidos quando você cria um post.">
     <Row label="Contas padrão"><span className={c.inline}>{accounts.filter(a => a.connected).map(a => { const on = posting.accountIds.includes(a.id); return <button key={a.id} className={`${c.pill} ${on ? c.pillOn : ''}`} onClick={() => set({ accountIds: on ? posting.accountIds.filter(x => x !== a.id) : [...posting.accountIds, a.id] })} aria-pressed={on}><NetworkIcon network={a.network} size={18} />{a.handle}</button> })}</span></Row>
@@ -154,6 +157,7 @@ function Shortcuts() {
     ['Editor', [['Espaço', 'Tocar / pausar'], ['J K L', 'Voltar, pausar, tocar (2x, 4x)'], ['S', 'Dividir na agulha'], ['M', 'Marcador'], ['Delete / Shift+Delete', 'Excluir / fechando o buraco'], ['Ctrl C X V D', 'Copiar, recortar, colar, duplicar'], ['Ctrl G', 'Agrupar'], ['Ctrl Z / Ctrl Shift Z', 'Desfazer / refazer'], ['F', 'Tela cheia']]],
   ]
   return <Card title="Atalhos de teclado" text="No Mac, use ⌘ no lugar de Ctrl.">
+    <Row label="Tour do OttoSocial" hint="Mostra de novo as dicas da primeira visita."><button className={s.secondary} onClick={startTour}>Ver o tour</button></Row>
     {list.map(([g, items]) => <div key={g} className={c.group}><h3>{g}</h3>{items.map(([k, v]) => <div key={k} className={c.shortcut}><span>{v}</span><span className={c.keys}>{k.split(' ').map((x, i) => <kbd key={i}>{x}</kbd>)}</span></div>)}</div>)}
   </Card>
 }

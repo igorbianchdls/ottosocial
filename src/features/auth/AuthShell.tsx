@@ -6,7 +6,7 @@ import a from './auth.module.css'
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return <main className={a.page}>
     <section className={a.formSide}>
-      <Link href="/" className={a.logo}><span><Sparkles size={17} /></span>OttoSocial</Link>
+      <Link href="/apresentacao" className={a.logo}><span><Sparkles size={17} /></span>OttoSocial</Link>
       <div className={a.formWrap}>{children}</div>
       <p className={a.legal}>Ao continuar, você concorda com os <a href="#termos">Termos de uso</a> e a <a href="#privacidade">Política de privacidade</a>.</p>
     </section>

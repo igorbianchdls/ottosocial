@@ -1,0 +1,16 @@
+.layer { position: fixed; inset: 0; z-index: 120; }
+.spot { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgb(15 17 22 / .55); transition: all .25s; pointer-events: none; outline: 2px solid #fff; }
+.card { position: fixed; width: 300px; display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 14px; border-radius: 16px; background: var(--panel); color: var(--ink); box-shadow: 0 20px 50px rgb(0 0 0 / .3); transition: top .25s; }
+.arrow { position: absolute; left: -7px; width: 14px; height: 14px; transform: rotate(45deg); background: var(--panel); }
+.card small { color: var(--blue-strong); font-weight: 600; font-size: 12px; }
+.card b { font-size: 16px; }
+.card p { color: var(--text); line-height: 1.5; }
+.close { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+.close:hover { background: var(--soft); }
+.foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.dots { flex: 1; display: flex; gap: 5px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+.dots .dotOn { width: 16px; border-radius: 3px; background: var(--blue-strong); }
+.back { height: 32px; padding: 0 10px; border-radius: 9px; color: var(--text); font-weight: 500; }
+.back:hover { background: var(--soft); }
+.next { height: 32px; padding: 0 14px; border-radius: 9px; background: var(--ink); color: var(--on-ink); font-weight: 600; }

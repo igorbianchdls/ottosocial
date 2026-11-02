@@ -58,4 +58,4 @@ export function resetSettings() {
 }
 
 /** Every key the app keeps in this browser, for backup and reset. */
-export const APP_KEYS = ['ottosocial-drive-v1', 'ottosocial-posts-v1', 'ottosocial-editor-v1', 'ottosocial-editor-versions-v1', 'ottosocial-notifications-v1', 'ottosocial-settings-v1', 'ottosocial-plugin-modes-v1', 'ottosocial-drive-view']
+export const APP_KEYS = ['ottosocial-drive-v1', 'ottosocial-posts-v1', 'ottosocial-editor-v1', 'ottosocial-editor-versions-v1', 'ottosocial-notifications-v1', 'ottosocial-settings-v1', 'ottosocial-plugin-modes-v1', 'ottosocial-drive-view', 'ottosocial-accounts-v1', 'ottosocial-tour-v1']

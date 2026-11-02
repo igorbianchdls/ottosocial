@@ -8,7 +8,8 @@ import { folderLabel, liveFiles, liveFolders } from '@/features/spaces/store'
 import { useDrive } from '@/features/spaces/hooks'
 import { Thumb } from '@/features/spaces/Thumb'
 import { NetworkIcon } from './badges'
-import { accounts, formatLabel, networkLabel, type Post, type PostFormat, type PostStatus } from './data'
+import { useAccounts } from './accounts'
+import { formatLabel, networkLabel, type Post, type PostFormat, type PostStatus } from './data'
 import { checkPost, hashtags, limits, networksOf } from './rules'
 import { PostPreview } from './Preview'
 import { deletePost, getPosts, newPostId, nowStamp, savePost } from './store'
@@ -28,6 +29,7 @@ function nextDefaultTime() {
 export function Composer({ initialFiles, editId }: { initialFiles: string[]; editId?: string }) {
   const router = useRouter()
   const drive = useDrive()
+  const accountList = useAccounts()
   const files = liveFiles(drive)
   const [editing, setEditing] = useState<Post | null>(null)
   const [chosenFolder, setFolderId] = useState<string | null>(null)
@@ -67,6 +69,8 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
   const pool = files.filter(f => f.folderId === folderId && (f.kind === 'video' || f.kind === 'image'))
   const toggle = <T,>(list: T[], v: T) => list.includes(v) ? list.filter(x => x !== v) : [...list, v]
   const issues = checkPost({ caption, accountIds, format, files: pickedFiles })
+  const stale = accountList.filter(a => accountIds.includes(a.id) && a.status === 'reconectar')
+  if (stale.length) issues.unshift({ level: 'erro', text: `${stale.map(a => a.handle).join(', ')} precisa ser reconectado em Contas antes de publicar.` })
   const blocked = issues.some(i => i.level === 'erro')
   const nets = networksOf(accountIds)
   const tags = hashtags(caption)
@@ -99,8 +103,8 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
         </div>
         <div className={`${s.card} ${s.step}`}>
           <span className={s.stepTitle}><i>2</i>Onde e como</span>
-          <div className={s.choices}>{accounts.map(a => { const on = accountIds.includes(a.id); return <button key={a.id} className={`${s.choice} ${on ? s.choiceOn : ''}`} disabled={!a.connected} onClick={() => setAccountIds(toggle(accountIds, a.id))} aria-pressed={on} title={a.connected ? '' : 'Conecte esta conta em Contas'}>
-            <NetworkIcon network={a.network} size={24} />{a.handle}<small>{a.connected ? '' : 'não conectada'}</small>
+          <div className={s.choices}>{accountList.map(a => { const on = accountIds.includes(a.id); return <button key={a.id} className={`${s.choice} ${on ? s.choiceOn : ''}`} disabled={!a.connected} onClick={() => setAccountIds(toggle(accountIds, a.id))} aria-pressed={on} title={a.connected ? (a.status === 'reconectar' ? 'Reconecte esta conta em Contas antes de publicar' : '') : 'Conecte esta conta em Contas'}>
+            <NetworkIcon network={a.network} size={24} />{a.handle}<small>{a.status === 'reconectar' ? 'reconectar' : a.connected ? '' : 'não conectada'}</small>
           </button> })}</div>
           <div className={s.choices}>{(['reel', 'story', 'feed'] as const).map(fm => <button key={fm} className={`${s.choice} ${format === fm ? s.choiceOn : ''}`} onClick={() => setFormat(fm)} aria-pressed={format === fm} style={{ paddingLeft: 14 }}>{formatLabel[fm]}</button>)}</div>
         </div>

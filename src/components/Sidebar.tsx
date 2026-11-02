@@ -18,10 +18,10 @@ export function Sidebar() {
   const inSpaces = path.startsWith('/spaces') || path.startsWith('/pastas')
   const folderSpace = path.startsWith('/pastas/') ? folders.find(f => f.id === path.split('/')[2])?.spaceId : undefined
   const item = (href: string, label: string, Icon: typeof House, on: boolean, extra?: React.ReactNode) =>
-    <Link href={href} className={`${s.navItem} ${on ? s.navOn : ''}`} aria-current={on ? 'page' : undefined}><Icon size={18} />{label}{extra}</Link>
+    <Link href={href} className={`${s.navItem} ${on ? s.navOn : ''}`} aria-current={on ? 'page' : undefined} data-tour={href.slice(1) || 'inicio'}><Icon size={18} />{label}{extra}</Link>
   return <aside className={s.sidebar}>
     <div className={s.logo}><Link href="/"><span className={s.logoMark}><Sparkles size={16} /></span>OttoSocial</Link><button className={s.iconBtn} aria-label="Recolher menu"><PanelLeft size={18} /></button></div>
-    <button className={s.searchBtn} onClick={openPalette}><Search size={16} />Buscar<kbd>Ctrl K</kbd></button>
+    <button className={s.searchBtn} onClick={openPalette} data-tour="busca"><Search size={16} />Buscar<kbd>Ctrl K</kbd></button>
     {item('/', 'Início', House, path === '/')}
     {item('/spaces', 'Spaces', FolderClosed, inSpaces)}
     {inSpaces && <div className={s.subNav}>
