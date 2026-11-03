@@ -3,31 +3,21 @@
 import { useEffect, useState } from 'react'
 import { Check, CircleAlert, Clock, Copy, Lock, ShieldCheck, Unplug, X } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
-import { MCP_URL, activity, connections, examples, modeLabel, tools, type Assistant, type ToolMode } from './data'
+import { MCP_URL, connections, examples, modeLabel, tools, type Assistant } from './data'
+import { setToolMode, usePlugin } from './store'
+import { remoteMode } from '@/lib/sync'
 import s from '@/components/ui.module.css'
 import p from './plugin.module.css'
 
-const MODES_KEY = 'ottosocial-plugin-modes-v1'
 const groups = ['Spaces', 'Posts', 'Legenda'] as const
 
 export function PluginView() {
-  const [connected, setConnected] = useState<Record<Assistant, boolean>>(() => Object.fromEntries(connections.map(c => [c.assistant, c.connected])) as Record<Assistant, boolean>)
+  const [connected, setConnected] = useState<Record<Assistant, boolean>>(() => Object.fromEntries(connections.map(c => [c.assistant, !remoteMode && c.connected])) as Record<Assistant, boolean>)
   const [open, setOpen] = useState<Assistant | null>(null)
-  const [modes, setModes] = useState<Record<string, ToolMode>>(() => Object.fromEntries(tools.map(t => [t.id, t.mode])))
+  const { modes, activity } = usePlugin()
   const [toast, setToast] = useState('')
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(MODES_KEY)
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setModes(m => ({ ...m, ...JSON.parse(raw) }))
-    } catch { /* keeps the defaults */ }
-  }, [])
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2200); return () => clearTimeout(t) }, [toast])
-  const setMode = (id: string, mode: ToolMode) => {
-    const next = { ...modes, [id]: mode }
-    setModes(next)
-    try { localStorage.setItem(MODES_KEY, JSON.stringify(next)) } catch { /* storage blocked */ }
-  }
+  const setMode = setToolMode
   const copy = (text: string, what: string) => { navigator.clipboard?.writeText(text).catch(() => {}); setToast(`${what} copiado.`) }
   return <section className={s.content}>
     <div className={s.pageHead}><div><h1>Plugin</h1><p>Use o OttoSocial conversando no ChatGPT ou no Claude.</p></div></div>
@@ -59,6 +49,7 @@ export function PluginView() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
         <div className={s.card}>
           <div className={s.cardHead}><h2>Atividade</h2></div>
+          {!activity.length && <p className={s.muted}>Nada ainda. Quando o ChatGPT ou o Claude fizerem algo pelo plugin, aparece aqui.</p>}
           <ul className={s.rows}>{activity.map(a => { const c = connections.find(x => x.assistant === a.assistant)!; return <li key={a.id}>
             <span className={`${p.status} ${p[`st_${a.status}`]}`}>{a.status === 'feito' ? <Check size={13} /> : a.status === 'aguardando' ? <Clock size={13} /> : <X size={13} />}</span>
             <span className={s.rowText} style={{ whiteSpace: 'normal' }}><b style={{ whiteSpace: 'normal' }}>{a.text}</b><small>{c.label} · {formatDateTime(a.date)}</small></span>

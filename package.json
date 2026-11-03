@@ -18,7 +18,8 @@
     "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "remotion": "4.0.468"
+    "remotion": "4.0.468",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "20.19.19",

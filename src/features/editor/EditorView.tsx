@@ -12,7 +12,7 @@ import { Properties } from './panels/Properties'
 import { runCommand } from './ai/commands'
 import { blankProject, defaultBox, fullBox, media, type MediaItem } from './project/data'
 import { addClip, clipEnd, duplicateClip, groupClips, insertClip, isLocked, projectDuration, removeClips, rippleDelete, splitAt, toggleMarker, ungroupClips, withGroup } from './project/ops'
-import { listVersions, saveVersion, type Version } from './project/versions'
+import { listVersions, saveVersion, type Version } from './project/store'
 import { copyClips, pasteClips, type ClipboardItem } from './project/clipboard'
 import { createFrameStore, useEditor } from './project/useEditor'
 import { FPS, type ClipProps, type Project, type TrackKind } from './project/types'
@@ -182,13 +182,13 @@ export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: s
       <span className={e.grow} />
       <span className={e.format}>{project.format}</span>
       <div className={e.versionsWrap}>
-        <button className={e.versionsBtn} onClick={() => setVersions(versions ? null : listVersions(project.id))} aria-expanded={!!versions}><History size={16} />Versões</button>
+        <button className={e.versionsBtn} onClick={() => { if (versions) setVersions(null); else void listVersions(project.id).then(setVersions) }} aria-expanded={!!versions}><History size={16} />Versões</button>
         {versions && <div className={e.versions}>
-          <button className={e.saveVersion} onClick={() => { setVersions(saveVersion(project, `Versão ${versions.length + 1}`)); setToast('Versão salva.') }}>Salvar versão agora</button>
+          <button className={e.saveVersion} onClick={() => { void saveVersion(project, `Versão ${versions.length + 1}`).then(list => { setVersions(list); setToast('Versão salva.') }).catch(() => setToast('Não foi possível salvar a versão.')) }}>Salvar versão agora</button>
           {versions.length === 0 && <p className={e.hint}>Nenhuma versão salva ainda.</p>}
           {versions.map(v => <div key={v.at + v.label} className={e.versionRow}>
             <span><b>{v.label}</b><small>{formatDateTime(v.at)}</small></span>
-            <button onClick={() => { saveVersion(project, 'Antes de restaurar'); apply(() => ({ ...v.project, id: project.id })); setVersions(null); setToast(`${v.label} restaurada. A versão anterior foi guardada.`) }}>Restaurar</button>
+            <button onClick={() => { void saveVersion(project, 'Antes de restaurar'); apply(() => ({ ...v.project, id: project.id })); setVersions(null); setToast(`${v.label} restaurada. A versão anterior foi guardada.`) }}>Restaurar</button>
           </div>)}
         </div>}
       </div>

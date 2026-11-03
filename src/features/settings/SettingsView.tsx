@@ -14,7 +14,13 @@ import { kindInfo, type NotificationKind } from '../notifications/data'
 import { startTour } from '@/components/Tour'
 import { ManageAccountButton, ManageMembersButton } from '@/features/auth/AccountControls'
 import { useAccount } from '@/features/auth/account'
-import { APP_KEYS, resetSettings, updateSettings, useSettings, type Theme } from './store'
+import { remoteMode } from '@/lib/sync'
+import { getDrive } from '@/features/spaces/store'
+import { getPosts } from '@/features/posts/store'
+import { getAccounts } from '@/features/posts/accounts'
+import { getProjectList } from '@/features/editor/project/store'
+import { getNotifications } from '@/features/notifications/store'
+import { APP_KEYS, getSettings, resetSettings, updateSettings, useSettings, type Theme } from './store'
 import s from '@/components/ui.module.css'
 import c from './settings.module.css'
 
@@ -149,8 +155,8 @@ function Storage() {
     <div className={c.stack}>{kinds.map(([l, k, col]) => { const v = files.filter(f => f.kind === k).reduce((a, f) => a + f.size, 0); return <i key={k} style={{ width: `${v / STORAGE_LIMIT * 100}%`, background: col }} title={`${l}: ${formatSize(v)}`} /> })}</div>
     <div className={c.legend}>{kinds.map(([l, k, col]) => <span key={k}><i style={{ background: col }} />{l} · {formatSize(files.filter(f => f.kind === k).reduce((a, f) => a + f.size, 0))}</span>)}</div>
     <Row label="Lixeira" hint="Itens na lixeira ainda ocupam espaço até você esvaziar."><span className={c.inline}><span className={c.muted}>{trash.length} {trash.length === 1 ? 'item' : 'itens'} · {formatSize(trashSize)}</span><Link href="/spaces/lixeira" className={s.secondary}>Abrir lixeira</Link></span></Row>
-    <Row label="Neste navegador" hint="Os arquivos que você envia ficam guardados no navegador até o Supabase entrar."><span className={c.muted}>{browser ? `${formatSize(browser.usage)} usados${browser.quota ? ` de ${formatSize(browser.quota)} disponíveis` : ''}` : '—'}</span></Row>
-    <Row label="Plano"><span className={c.muted}>Demonstração · 5 GB</span></Row>
+    {!remoteMode && <Row label="Neste navegador" hint="Os arquivos que você envia ficam guardados no navegador até o Supabase entrar."><span className={c.muted}>{browser ? `${formatSize(browser.usage)} usados${browser.quota ? ` de ${formatSize(browser.quota)} disponíveis` : ''}` : '—'}</span></Row>}
+    <Row label="Plano"><span className={c.muted}>{remoteMode ? 'Grátis' : 'Demonstração'} · 5 GB</span></Row>
   </Card>
 }
 
@@ -166,7 +172,36 @@ function Shortcuts() {
   </Card>
 }
 
+/** Signed in: the data is the workspace's, in the database. Backup exports it; this browser only keeps a cache. */
+function WorkspaceData({ onToast }: { onToast: (t: string) => void }) {
+  const { workspace } = useSettings()
+  const exportAll = () => {
+    const data = {
+      spaces: getDrive(), posts: getPosts(), accounts: getAccounts().filter(a => a.handle), projects: getProjectList(),
+      notifications: getNotifications(), settings: getSettings(),
+    }
+    const blob = new Blob([JSON.stringify({ app: 'ottosocial', version: 2, workspace: workspace.name, exportedAt: new Date().toISOString(), data }, null, 2)], { type: 'application/json' })
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ottosocial-${workspace.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.json`; a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+    onToast('Backup baixado.')
+  }
+  const clearBrowser = () => {
+    for (const k of APP_KEYS) localStorage.removeItem(k)
+    indexedDB.deleteDatabase('ottosocial-files')
+    location.reload()
+  }
+  return <Card title="Dados e backup" text={`Tudo do workspace ${workspace.name} fica salvo na nuvem e aparece em qualquer computador em que você entrar.`}>
+    <Row label="Exportar dados" hint="Spaces, pastas e arquivos (só os dados), posts, contas, projetos do editor, notificações e configurações, em JSON."><button className={s.secondary} onClick={exportAll}><Download size={15} />Baixar backup</button></Row>
+    <Row label="Limpar este navegador" hint="Apaga só o que este navegador guarda (preferências e dados da demonstração). Nada do workspace é apagado."><button className={s.secondary} onClick={clearBrowser}><RotateCcw size={15} />Limpar</button></Row>
+  </Card>
+}
+
 function Data({ onToast }: { onToast: (t: string) => void }) {
+  if (remoteMode) return <WorkspaceData onToast={onToast} />
+  return <DemoData onToast={onToast} />
+}
+
+function DemoData({ onToast }: { onToast: (t: string) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const [confirming, setConfirming] = useState(false)
   const exportAll = () => {

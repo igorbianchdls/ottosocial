@@ -7,6 +7,7 @@ import { useDrive } from '@/features/spaces/hooks'
 import { openPalette } from './CommandPalette'
 import { useVisibleNotifications } from '@/features/notifications/NotificationsView'
 import { useSettings } from '@/features/settings/store'
+import { usePosts } from '@/features/posts/store'
 import { SignOutButton, WorkspaceSwitcher } from '@/features/auth/AccountControls'
 import { CLERK_KEY } from '@/lib/supabase/env'
 import s from './ui.module.css'
@@ -16,6 +17,7 @@ export function Sidebar() {
   const { folders, spaces } = useDrive()
   const unread = useVisibleNotifications().filter(x => !x.read).length
   const { profile, workspace } = useSettings()
+  const scheduled = usePosts().posts.filter(p => p.status === 'agendado').length
   const inSpaces = path.startsWith('/spaces') || path.startsWith('/pastas')
   const folderSpace = path.startsWith('/pastas/') ? folders.find(f => f.id === path.split('/')[2])?.spaceId : undefined
   const item = (href: string, label: string, Icon: typeof House, on: boolean, extra?: React.ReactNode) =>
@@ -33,7 +35,7 @@ export function Sidebar() {
     </div>}
     {item('/editor', 'Editor', Clapperboard, path.startsWith('/editor'))}
     {item('/postar', 'Postar', Send, path === '/postar')}
-    {item('/posts', 'Agendados', CalendarClock, path === '/posts', <span className={s.countBadge}>3</span>)}
+    {item('/posts', 'Agendados', CalendarClock, path === '/posts', scheduled > 0 ? <span className={s.countBadge}>{scheduled}</span> : undefined)}
     {item('/contas', 'Contas', UsersRound, path === '/contas')}
     {item('/plugin', 'Plugin', Blocks, path === '/plugin')}
     <div className={s.spacer} />

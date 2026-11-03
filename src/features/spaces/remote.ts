@@ -2,8 +2,9 @@
 // Pure module (no React). The store calls these; nothing here touches the in-memory state.
 import { supabase } from '@/lib/supabase/client'
 import type { FileKind } from './data'
+import type { WorkspaceContext } from '@/lib/sync'
 
-export type DriveContext = { ws: string; user: string }
+export type DriveContext = WorkspaceContext
 export type Row = Record<string, unknown>
 const BUCKET = 'media'
 
@@ -47,28 +48,9 @@ export async function fetchDrive(ctx: DriveContext) {
   }
 }
 
-// ---------- writes, one after another so an insert always lands before its update ----------
+// ---------- writes (shared queue) ----------
 
-type Result = PromiseLike<{ error: unknown }>
-let chain: Promise<unknown> = Promise.resolve()
-let pending = 0
-const errorListeners = new Set<(e: unknown) => void>()
-export const onRemoteError = (l: (e: unknown) => void) => { errorListeners.add(l); return () => { errorListeners.delete(l) } }
-export const idle = () => pending === 0
-
-/** Queues a write. Resolves when it is saved; on failure the listeners hear about it (the store reloads). */
-export function persist(run: () => Result | Promise<void>): Promise<void> {
-  pending++
-  const p = chain.then(async () => {
-    const r = await run()
-    const error = r && typeof r === 'object' && 'error' in r ? r.error : null
-    if (error) throw error
-  })
-  chain = p.catch(() => undefined).finally(() => { pending-- })
-  p.catch(e => errorListeners.forEach(l => l(e)))
-  return p
-}
-export const db = () => supabase()
+export { db, idle, onRemoteError, persist } from '@/lib/sync'
 
 // ---------- storage ----------
 

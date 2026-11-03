@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useReducer, useRef, useSyncExternalStore } from 'react'
 import type { Project } from './types'
+import { loadProject, storeProject } from './store'
 
-export const STORAGE_KEY = 'ottosocial-editor-v1'
 const HISTORY_LIMIT = 100
 
 type State = { past: Project[]; present: Project; future: Project[]; lastKey?: string }
@@ -30,25 +30,34 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-export function readSaved(): Record<string, Project> {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') } catch { return {} }
-}
-
-/** Project state with undo/redo, saved in this browser until projects live in Supabase. */
-/** `rebuild` makes the project on the client when it isn't saved yet (uploaded files only exist in this browser). */
+/**
+ * Project state with undo/redo, saved after each change (see store.ts).
+ * `rebuild` makes the project on the client when it isn't saved yet (it needs the Spaces files, which live on the client).
+ */
 export function useEditor(initial: Project, rebuild?: () => Project) {
   const [state, dispatch] = useReducer(reducer, { past: [], present: initial, future: [] })
-  // Skips the save that runs in the same commit as the load, so it can't overwrite the saved copy.
+  // Nothing is saved until the saved copy has been read (it may come from the database), and the load
+  // itself is not saved back, so it can't overwrite that copy.
+  const ready = useRef(false)
   const skipSave = useRef(true)
   useEffect(() => {
-    const saved = readSaved()[initial.id]
-    if (saved) dispatch({ type: 'load', project: saved })
-    else if (rebuild) dispatch({ type: 'load', project: rebuild() })
+    let live = true
+    ready.current = false
+    void loadProject(initial.id).then(saved => {
+      if (!live) return
+      skipSave.current = true
+      if (saved) dispatch({ type: 'load', project: saved })
+      else if (rebuild) dispatch({ type: 'load', project: rebuild() })
+      else skipSave.current = false
+      ready.current = true
+    })
+    return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial.id])
   useEffect(() => {
+    if (!ready.current) return
     if (skipSave.current) { skipSave.current = false; return }
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...readSaved(), [state.present.id]: state.present })) } catch { /* storage blocked */ }
+    storeProject(state.present)
   }, [state.present])
   return {
     project: state.present,

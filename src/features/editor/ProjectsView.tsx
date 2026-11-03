@@ -2,30 +2,22 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { Thumbnail } from '@remotion/player'
 import { Plus } from 'lucide-react'
 import { formatDateTime } from '@/lib/format'
 import { EditorComposition } from './remotion/Composition'
-import { sampleProjects } from './project/data'
 import { projectDuration } from './project/ops'
-import { readSaved } from './project/useEditor'
+import { newProjectId, useProjects } from './project/store'
 import { templates } from './project/templates'
-import { FPS, canvasSize, type Project } from './project/types'
+import { FPS, canvasSize } from './project/types'
 import { timecode } from './timeline/Timeline'
 import s from '@/components/ui.module.css'
 import e from './editor.module.css'
 
 export function ProjectsView() {
   const router = useRouter()
-  const [projects, setProjects] = useState<Project[]>(sampleProjects)
-  useEffect(() => {
-    const saved = readSaved()
-    const merged = [...Object.values(saved).filter(p => !sampleProjects.some(x => x.id === p.id)), ...sampleProjects.map(p => saved[p.id] ?? p)]
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProjects(merged.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
-  }, [])
-  const create = (modelo?: string) => router.push(`/editor/p-${Date.now().toString(36)}${modelo ? `?modelo=${modelo}` : ''}`)
+  const projects = useProjects()
+  const create = (modelo?: string) => router.push(`/editor/${newProjectId()}${modelo ? `?modelo=${modelo}` : ''}`)
   return <section className={s.content}>
     <div className={s.pageHead}><div><h1>Editor</h1><p>Monte vídeos com linha do tempo e peça edições para a IA.</p></div><button className={s.primary} onClick={() => create()}><Plus size={16} />Novo projeto</button></div>
     <h2 className={e.sectionTitle}>Começar com um modelo</h2>
@@ -39,6 +31,7 @@ export function ProjectsView() {
     <h2 className={e.sectionTitle}>Seus projetos</h2>
     <div className={e.projectGrid}>
       <button className={e.newProject} onClick={() => create()}><Plus size={22} />Novo projeto</button>
+      {!projects.length && <p className={s.muted}>Nenhum projeto ainda. Comece por um modelo ou abra vídeos de Spaces no editor.</p>}
       {projects.map(p => {
         const { width, height } = canvasSize[p.format]
         const d = projectDuration(p)

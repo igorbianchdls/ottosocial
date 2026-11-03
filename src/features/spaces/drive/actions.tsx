@@ -7,6 +7,7 @@ import { Check, Clapperboard, Copy, Download, Eye, FolderInput, FolderOpen, Fold
 import { downloadBlob } from '../blobs'
 import { downloadObject, onRemoteError } from '../remote'
 import { notify } from '@/features/notifications/store'
+import { newProjectId } from '@/features/editor/project/store'
 import { createFolder, deleteForever, remoteDrive, duplicateFiles, emptyTrash, getDrive, isFavorite, markOpened, moveItems, rename, restoreItems, setFavorite, trashItems, uploadFiles, type DFile, type Item } from '../store'
 import { useDrive } from '../hooks'
 import { ConfirmDialog, ContextMenu, MoveDialog, NameDialog, type MenuItem, type MenuState } from './ui'
@@ -21,7 +22,6 @@ type Dialog =
 
 const files = (items: Item[]) => items.flatMap(i => i.type === 'file' ? [i.file] : [])
 const label = (items: Item[]) => items.length === 1 ? `“${items[0].type === 'file' ? items[0].file.name : items[0].folder.name}”` : `${items.length} itens`
-const newId = () => `p-${Date.now().toString(36)}`
 
 /** `where` is the folder on screen: uploads go there unless a menu picked another target. */
 export function useDriveActions(where?: { spaceId: string; folderId: string | null }) {
@@ -72,7 +72,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
     setToast(got ? `Baixando ${got} ${got === 1 ? 'arquivo' : 'arquivos'}.` : 'Arquivos de exemplo não têm conteúdo para baixar.')
   }
   const post = (list: DFile[]) => { const ok = list.filter(f => f.kind === 'video' || f.kind === 'image'); if (ok.length) router.push(`/postar?arquivos=${ok.map(f => f.id).join(',')}`) }
-  const edit = (list: DFile[]) => { const ok = list.filter(f => f.kind !== 'text'); if (ok.length) router.push(`/editor/${newId()}?arquivos=${ok.map(f => f.id).join(',')}`) }
+  const edit = (list: DFile[]) => { const ok = list.filter(f => f.kind !== 'text'); if (ok.length) router.push(`/editor/${newProjectId()}?arquivos=${ok.map(f => f.id).join(',')}`) }
   const trash = (items: Item[]) => { trashItems(items); setToast(`${label(items)} ${items.length === 1 ? 'foi para' : 'foram para'} a lixeira.`) }
   const favorite = (items: Item[]) => { const on = !items.every(isFavorite); setFavorite(items, on); setToast(on ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.') }
 

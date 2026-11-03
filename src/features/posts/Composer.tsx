@@ -12,7 +12,7 @@ import { useAccounts } from './accounts'
 import { formatLabel, networkLabel, type Post, type PostFormat, type PostStatus } from './data'
 import { checkPost, hashtags, limits, networksOf } from './rules'
 import { PostPreview } from './Preview'
-import { deletePost, getPosts, newPostId, nowStamp, savePost } from './store'
+import { deletePost, getPosts, newPostId, nowStamp, savePost, usePosts } from './store'
 import { getSettings, useSettings } from '@/features/settings/store'
 import { notify } from '@/features/notifications/store'
 import s from '@/components/ui.module.css'
@@ -37,15 +37,22 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
   // Uploaded files only exist in this browser, so the list is checked on every render, not only on the server.
   const picked = pickedRaw.filter(id => files.some(f => f.id === id))
   const pickedFiles = picked.map(id => files.find(f => f.id === id)!)
-  const folderId = chosenFolder ?? files.find(f => f.id === picked[0])?.folderId ?? 'reels'
+  const folderId = chosenFolder ?? files.find(f => f.id === picked[0])?.folderId ?? liveFolders(drive)[0]?.id ?? null
   const [caption, setCaption] = useState('')
-  const [accountIds, setAccountIds] = useState<string[]>(['ig-otto'])
+  const { posting: postingPrefs } = useSettings()
+  // Until the person picks, new posts go to the default accounts from Configurações (or the first connected one).
+  const [chosenAccounts, setAccountIds] = useState<string[] | null>(null)
+  const preferred = postingPrefs.accountIds.filter(id => accountList.some(a => a.id === id && a.connected))
+  const accountIds = (chosenAccounts ?? (preferred.length ? preferred : accountList.filter(a => a.status === 'conectada').slice(0, 1).map(a => a.id)))
+    .filter(id => accountList.some(a => a.id === id))
   const [format, setFormat] = useState<PostFormat>('reel')
   const [when, setWhen] = useState<'agora' | 'agendar'>('agora')
   const [date, setDate] = useState('')
   const [toast, setToast] = useState('')
 
-  // Editing: load the post on the client (posts live in this browser).
+  // Editing: load the post once it is on the client (it may still be coming from the database).
+  const { posts: allPosts } = usePosts()
+  const editLoaded = !!editId && allPosts.some(x => x.id === editId)
   useEffect(() => {
     if (!editId) return
     const post = getPosts().find(x => x.id === editId)
@@ -54,17 +61,16 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
     setEditing(post); setPicked(post.fileIds); setCaption(post.caption); setAccountIds(post.accountIds); setFormat(post.format)
     setWhen(post.status === 'agendado' || post.status === 'rascunho' ? 'agendar' : 'agora'); setDate(post.date)
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [editId])
+  }, [editId, editLoaded])
   useEffect(() => { if (!date) setDate(nextDefaultTime()) }, [date]) // eslint-disable-line react-hooks/set-state-in-effect
   // New posts start with the default accounts and format from Configurações.
   useEffect(() => {
     if (editId) return
     const { posting } = getSettings()
     /* eslint-disable react-hooks/set-state-in-effect */
-    setAccountIds(posting.accountIds.length ? posting.accountIds : ['ig-otto']); setFormat(posting.format)
+    setFormat(posting.format)
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [editId])
-  const { posting: postingPrefs } = useSettings()
 
   const pool = files.filter(f => f.folderId === folderId && (f.kind === 'video' || f.kind === 'image'))
   const toggle = <T,>(list: T[], v: T) => list.includes(v) ? list.filter(x => x !== v) : [...list, v]
@@ -104,7 +110,7 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
         <div className={`${s.card} ${s.step}`}>
           <span className={s.stepTitle}><i>2</i>Onde e como</span>
           <div className={s.choices}>{accountList.map(a => { const on = accountIds.includes(a.id); return <button key={a.id} className={`${s.choice} ${on ? s.choiceOn : ''}`} disabled={!a.connected} onClick={() => setAccountIds(toggle(accountIds, a.id))} aria-pressed={on} title={a.connected ? (a.status === 'reconectar' ? 'Reconecte esta conta em Contas antes de publicar' : '') : 'Conecte esta conta em Contas'}>
-            <NetworkIcon network={a.network} size={24} />{a.handle}<small>{a.status === 'reconectar' ? 'reconectar' : a.connected ? '' : 'não conectada'}</small>
+            <NetworkIcon network={a.network} size={24} />{a.handle || networkLabel[a.network]}<small>{a.status === 'reconectar' ? 'reconectar' : a.connected ? '' : 'não conectada'}</small>
           </button> })}</div>
           <div className={s.choices}>{(['reel', 'story', 'feed'] as const).map(fm => <button key={fm} className={`${s.choice} ${format === fm ? s.choiceOn : ''}`} onClick={() => setFormat(fm)} aria-pressed={format === fm} style={{ paddingLeft: 14 }}>{formatLabel[fm]}</button>)}</div>
         </div>

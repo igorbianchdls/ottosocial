@@ -42,7 +42,7 @@ export function AccountsView() {
     <div className={c.grid}>{accounts.map(a => { const st = stats(a.id); return <article key={a.id} className={`${c.card} ${a.status === 'reconectar' ? c.warn : ''}`}>
       <header className={c.head}>
         <NetworkIcon network={a.network} size={44} />
-        <span className={c.name}><b>{a.handle}</b><small>{networkLabel[a.network]} · {a.name}</small></span>
+        <span className={c.name}><b>{a.handle || networkLabel[a.network]}</b><small>{a.handle ? `${networkLabel[a.network]}${a.name ? ` · ${a.name}` : ''}` : 'Nenhuma conta ainda'}</small></span>
         <span className={`${c.status} ${c[`st_${a.status}`]}`}>{a.status === 'conectada' ? <><CircleCheck size={14} />Conectada</> : a.status === 'reconectar' ? <><AlertTriangle size={14} />Reconectar</> : 'Não conectada'}</span>
       </header>
       {a.status !== 'desconectada' ? <>
@@ -64,9 +64,9 @@ export function AccountsView() {
     <div className={c.soon}>{soon.map(([n, col]) => <span key={n}><i style={{ background: col }}>{n[0]}</i>{n}</span>)}</div>
     <p className={c.note}><Lock size={13} />O OttoSocial só pede as permissões necessárias para publicar e ler métricas. Nesta demonstração a conexão é simulada.</p>
 
-    {connecting && <ConnectDialog account={connecting} onClose={() => setConnecting(null)} onDone={() => {
-      setAccountStatus(connecting.id, 'conectada')
-      notify({ kind: 'conta', title: `${networkLabel[connecting.network]} conectado`, text: `${connecting.handle} já pode receber posts e agendamentos.`, href: '/contas', action: 'Ver contas' })
+    {connecting && <ConnectDialog account={connecting} onClose={() => setConnecting(null)} onDone={handle => {
+      setAccountStatus(connecting.id, 'conectada', handle !== connecting.handle ? { handle } : undefined)
+      notify({ kind: 'conta', title: `${networkLabel[connecting.network]} conectado`, text: `${handle} já pode receber posts e agendamentos.`, href: '/contas', action: 'Ver contas' })
       setToast(`${networkLabel[connecting.network]} conectado.`); setConnecting(null)
     }} />}
     {confirm && <div className={c.backdrop} onPointerDown={e => { if (e.target === e.currentTarget) setConfirm(null) }}><div className={c.dialog} role="dialog" aria-modal="true" aria-label="Desconectar">
@@ -79,8 +79,12 @@ export function AccountsView() {
 }
 
 /** Pretend OAuth: explains the permissions, "opens" the network's login and comes back connected. */
-function ConnectDialog({ account, onClose, onDone }: { account: AccountState; onClose: () => void; onDone: () => void }) {
+function ConnectDialog({ account, onClose, onDone }: { account: AccountState; onClose: () => void; onDone: (handle: string) => void }) {
   const [step, setStep] = useState<'info' | 'wait' | 'ok'>('info')
+  // First connection of this network in the workspace: until the real login exists, the person types the account's @.
+  const [handle, setHandle] = useState(account.handle)
+  const asking = !account.handle
+  const cleanHandle = account.network === 'linkedin' ? handle.trim() : handle.trim() ? '@' + handle.trim().replace(/^@+/, '') : ''
   useEffect(() => {
     if (step !== 'wait') return
     const t = setTimeout(() => setStep('ok'), 1400)
@@ -94,10 +98,11 @@ function ConnectDialog({ account, onClose, onDone }: { account: AccountState; on
         <h2>Conectar {networkLabel[account.network]}</h2>
         <p>Você vai entrar no {networkLabel[account.network]} e autorizar o OttoSocial a:</p>
         <ul className={c.perms}>{permissions[account.network].map(p => <li key={p}><Check size={14} />{p}</li>)}</ul>
-        <div className={c.dialogActions}><button className={s.secondary} onClick={onClose}>Cancelar</button><button className={s.primary} onClick={() => setStep('wait')}><ExternalLink size={15} />Continuar no {networkLabel[account.network]}</button></div>
+        {asking && <label className={c.handleField}>{account.network === 'linkedin' ? 'Nome da página' : 'Usuário da conta'}<input value={handle} onChange={e => setHandle(e.target.value)} placeholder={account.network === 'linkedin' ? 'Minha Empresa' : '@suamarca'} autoFocus /></label>}
+        <div className={c.dialogActions}><button className={s.secondary} onClick={onClose}>Cancelar</button><button className={s.primary} disabled={asking && !cleanHandle} onClick={() => setStep('wait')}><ExternalLink size={15} />Continuar no {networkLabel[account.network]}</button></div>
       </>}
       {step === 'wait' && <div className={c.waiting}><Loader2 size={26} className={c.spin} /><b>Aguardando autorização…</b><span>Na versão real, uma janela do {networkLabel[account.network]} abre aqui.</span></div>}
-      {step === 'ok' && <div className={c.waiting}><CircleCheck size={30} className={c.okIcon} /><b>{account.handle} conectado</b><span>Já dá para publicar e agendar nesta conta.</span><button className={s.primary} onClick={onDone}>Concluir</button></div>}
+      {step === 'ok' && <div className={c.waiting}><CircleCheck size={30} className={c.okIcon} /><b>{cleanHandle || account.handle} conectado</b><span>Já dá para publicar e agendar nesta conta.</span><button className={s.primary} onClick={() => onDone(cleanHandle || account.handle)}>Concluir</button></div>}
     </div>
   </div>
 }

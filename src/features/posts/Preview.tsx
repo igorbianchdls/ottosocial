@@ -6,7 +6,8 @@ import { Bookmark, Heart, MessageCircle, MoreHorizontal, Music2, Plus, Send, Sha
 import type { DFile } from '@/features/spaces/store'
 import { Thumb } from '@/features/spaces/Thumb'
 import { IG_VISIBLE, networksOf } from './rules'
-import { accounts, type PostFormat } from './data'
+import { type PostFormat } from './data'
+import { getAccounts } from './accounts'
 import p from './posts.module.css'
 
 type View = 'ig-reel' | 'ig-feed' | 'ig-story' | 'tiktok'
@@ -17,7 +18,7 @@ export function PostPreview({ files, caption, accountIds, format }: { files: DFi
   const views: View[] = [...(nets.includes('instagram') ? [format === 'feed' ? 'ig-feed' : format === 'story' ? 'ig-story' : 'ig-reel'] as View[] : []), ...(nets.includes('tiktok') ? ['tiktok'] as View[] : [])]
   const [pick, setPick] = useState<View | null>(null)
   const view = pick && views.includes(pick) ? pick : views[0] ?? 'ig-reel'
-  const handle = (net: 'instagram' | 'tiktok') => accounts.find(a => a.network === net && accountIds.includes(a.id))?.handle ?? '@sua.conta'
+  const handle = (net: 'instagram' | 'tiktok') => getAccounts().find(a => a.network === net && accountIds.includes(a.id))?.handle ?? '@sua.conta'
   const [slide, setSlide] = useState(0)
   const current = files[Math.min(slide, Math.max(0, files.length - 1))]
   const media = current ? <Thumb file={{ ...current, duration: undefined }} showKind={false} className={p.media} /> : <span className={p.mediaEmpty}>Escolha um arquivo</span>

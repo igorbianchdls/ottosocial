@@ -1,7 +1,9 @@
 'use client'
 
-// User and workspace preferences, kept in this browser until login and the database exist (phase 2).
+// User and workspace preferences. Kept in this browser as a cache; signed in, AccountSync loads them from the
+// database (profiles, workspaces, user_settings) and saves every change back.
 import { useSyncExternalStore } from 'react'
+import { remoteMode } from '@/lib/sync'
 import type { NotificationKind } from '../notifications/data'
 import type { PostFormat } from '../posts/data'
 
@@ -22,7 +24,7 @@ export const defaults: Settings = {
     kinds: { publicado: true, erro: true, comentario: true, agendado: true, armazenamento: true, conta: true, plugin: true, arquivos: false },
     email: false, push: true, daily: true, quietFrom: '22:00', quietTo: '07:00',
   },
-  posting: { accountIds: ['ig-otto'], format: 'reel', time: '19:00', confirm: true, hashtags: '' },
+  posting: { accountIds: remoteMode ? [] : ['ig-otto'], format: 'reel', time: '19:00', confirm: true, hashtags: '' },
 }
 
 const KEY = 'ottosocial-settings-v1'
@@ -62,6 +64,9 @@ export function resetSettings() {
   try { localStorage.removeItem(KEY) } catch { /* storage blocked */ }
   listeners.forEach(l => l())
 }
+
+/** Sections saved per person in user_settings.data (profile and workspace have their own tables). */
+export const PERSONAL_SECTIONS = ['appearance', 'notifications', 'posting'] as const
 
 /** Every key the app keeps in this browser, for backup and reset. */
 export const APP_KEYS = ['ottosocial-drive-v1', 'ottosocial-posts-v1', 'ottosocial-editor-v1', 'ottosocial-editor-versions-v1', 'ottosocial-notifications-v1', 'ottosocial-settings-v1', 'ottosocial-plugin-modes-v1', 'ottosocial-drive-view', 'ottosocial-accounts-v1', 'ottosocial-tour-v1']

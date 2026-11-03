@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Bebas_Neue, Caveat, DM_Serif_Display, Geist, Geist_Mono } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
-import { ptBR } from '@clerk/localizations'
+import { clerkPtBR } from '@/features/auth/localization'
 import { CLERK_KEY } from '@/lib/supabase/env'
 import './globals.css'
 
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable} ${bebas.variable} ${dmSerif.variable} ${caveat.variable}`}>
     <body>
       {CLERK_KEY
-        ? <ClerkProvider localization={ptBR} appearance={appearance} signInUrl="/login" signUpUrl="/cadastro" afterSignOutUrl="/login"
+        ? <ClerkProvider localization={clerkPtBR} appearance={appearance} signInUrl="/login" signUpUrl="/cadastro" afterSignOutUrl="/login"
             signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/" taskUrls={{ 'choose-organization': '/workspace' }}>{children}</ClerkProvider>
         : children}
     </body>

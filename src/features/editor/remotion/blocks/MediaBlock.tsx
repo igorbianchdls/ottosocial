@@ -1,8 +1,9 @@
-import { interpolate, useCurrentFrame, useVideoConfig } from 'remotion'
+import { Html5Video, Img, interpolate, useCurrentFrame, useVideoConfig } from 'remotion'
 import { Film, Image as ImageIcon } from 'lucide-react'
 import { media } from '../../project/data'
 import { FPS, type Clip } from '../../project/types'
 import { filterCss } from '../animate'
+import { useMediaUrl } from '../../project/mediaUrls'
 
 const tones: Record<string, [string, string]> = {
   sand: ['#e9cfae', '#8a5f3b'], blue: ['#9cc3fa', '#1f4fa8'], rose: ['#f5aabd', '#9b2f52'],
@@ -11,8 +12,8 @@ const tones: Record<string, [string, string]> = {
 const clock = (frames: number) => { const sec = Math.floor(frames / FPS); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}` }
 
 /**
- * Stands in for the real file until files come from storage: gradient, name and the file timecode.
- * Respects the file's own proportions, so fit (fill, fit, fit over blur), crop and flip look right.
+ * The clip's file from Spaces (video or image), sized by fit (fill, fit, fit over blur), crop and flip.
+ * Sample files and files still loading get a stand-in: gradient, name and the file timecode.
  */
 export function MediaBlock({ clip, video }: { clip: Clip; video?: boolean }) {
   const frame = useCurrentFrame()
@@ -37,6 +38,11 @@ export function MediaBlock({ clip, video }: { clip: Clip; video?: boolean }) {
 
 function Content({ clip, video, frame, size, blurred, flip }: { clip: Clip; video?: boolean; frame: number; size: { w: number; h: number }; blurred: boolean; flip: string }) {
   const m = media(clip.props.fileId)
+  const url = useMediaUrl(clip.props.fileId)
+  const box = { position: 'absolute', left: '50%', top: '50%', width: size.w, height: size.h, transform: `translate(-50%, -50%) ${flip}`, overflow: 'hidden', filter: blurred ? 'blur(40px) brightness(.75)' : undefined } as const
+  const fill = { width: '100%', height: '100%', objectFit: 'fill' } as const
+  if (url && video) return <div style={box}><Html5Video src={url} trimBefore={clip.trimStart} playbackRate={clip.speed ?? 1} muted={blurred} volume={clip.props.volume ?? 1} style={fill} pauseWhenBuffering /></div>
+  if (url) return <div style={box}><Img src={url} style={fill} /></div>
   const [a, b] = tones[m?.tone ?? 'blue'] ?? tones.blue
   const speed = clip.speed ?? 1
   const zoom = interpolate(frame, [0, clip.duration], [1, 1.08])

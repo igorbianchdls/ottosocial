@@ -11,9 +11,7 @@ import { useDrive } from '@/features/spaces/hooks'
 import { fileGone, folderGone, folderLabel, markOpened } from '@/features/spaces/store'
 import { usePosts } from '@/features/posts/store'
 import { formatLabel } from '@/features/posts/data'
-import { sampleProjects } from '@/features/editor/project/data'
-import { readSaved } from '@/features/editor/project/useEditor'
-import type { Project } from '@/features/editor/project/types'
+import { newProjectId, useProjects } from '@/features/editor/project/store'
 import { formatDate, formatDateTime } from '@/lib/format'
 import c from './palette.module.css'
 
@@ -31,7 +29,7 @@ function score(r: Result, words: string[]) {
 export const PALETTE_EVENT = 'ottosocial:palette'
 export const openPalette = () => window.dispatchEvent(new Event(PALETTE_EVENT))
 
-const newProjectHref = () => `/editor/p-${Date.now().toString(36)}`
+const newProjectHref = () => `/editor/${newProjectId()}`
 const fileIcon = { video: Film, image: ImageIcon, audio: Music, text: FileText }
 const groupOrder = ['Ações', 'Recentes', 'Arquivos', 'Pastas', 'Spaces', 'Posts', 'Projetos do editor', 'Ir para']
 
@@ -42,7 +40,7 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const [active, setActive] = useState(0)
-  const [projects, setProjects] = useState<Project[]>(sampleProjects)
+  const projects = useProjects()
   const input = useRef<HTMLInputElement>(null)
   const list = useRef<HTMLDivElement>(null)
 
@@ -56,8 +54,6 @@ export function CommandPalette() {
   useEffect(() => {
     if (!open) return
     setQ(''); setActive(0)
-    const saved = readSaved()
-    setProjects([...Object.values(saved).filter(p => !sampleProjects.some(x => x.id === p.id)), ...sampleProjects.map(p => saved[p.id] ?? p)])
     setTimeout(() => input.current?.focus(), 0)
   }, [open])
 

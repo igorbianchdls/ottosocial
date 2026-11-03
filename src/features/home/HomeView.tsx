@@ -26,8 +26,8 @@ export function HomeView() {
   const published = posts.filter(p => p.status === 'publicado').sort((a, b) => b.date.localeCompare(a.date))
   const recent = [...files].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt) || b.id.localeCompare(a.id)).slice(0, 6)
   return <section className={s.content}>
-    {welcome && <div className={s.welcome}><b>Tudo pronto, {profile.name}!</b><span>O workspace {workspace.name} foi criado. Comece enviando seus vídeos para um space ou criando um post.</span><button className={s.iconBtn} onClick={() => setWelcome(false)} aria-label="Fechar">×</button></div>}
-    <div className={s.pageHead}><div><h1>Olá, {profile.name}</h1><p>Seus spaces de mídias e as próximas publicações.</p></div><div className={s.row}><Link href="/spaces" className={s.secondary}><Upload size={15} />Enviar arquivos</Link><Link href="/postar" className={s.primary}><Plus size={16} />Novo post</Link></div></div>
+    {welcome && <div className={s.welcome}><b>Tudo pronto, {profile.name.split(' ')[0] || profile.name}!</b><span>O workspace {workspace.name} foi criado. Comece enviando seus vídeos para um space ou criando um post.</span><button className={s.iconBtn} onClick={() => setWelcome(false)} aria-label="Fechar">×</button></div>}
+    <div className={s.pageHead}><div><h1>Olá, {profile.name.split(' ')[0] || profile.name}</h1><p>Seus spaces de mídias e as próximas publicações.</p></div><div className={s.row}><Link href="/spaces" className={s.secondary}><Upload size={15} />Enviar arquivos</Link><Link href="/postar" className={s.primary}><Plus size={16} />Novo post</Link></div></div>
     <div className={s.statsRow}>
       <div className={s.stat}><small>Armazenamento</small><b>{formatSize(used)}</b><span className={s.bar} style={{ marginTop: 8 }}><i style={{ width: `${used / STORAGE_LIMIT * 100}%`, background: 'linear-gradient(90deg, #93c5fd, #3b82f6)' }} /></span></div>
       <div className={s.stat}><small>Arquivos</small><b>{files.length}</b><em>em {folders.length} pastas</em></div>
@@ -36,8 +36,8 @@ export function HomeView() {
     </div>
     <div className={s.grid2}>
       <div className={s.card}><div className={s.cardHead}><h2>Próximos posts</h2><Link href="/posts" className={s.link}>Ver todos<ArrowRight size={14} /></Link></div><ul className={s.rows}>{upcoming.slice(0, 4).map(p => <PostRow key={p.id} post={p} />)}{!upcoming.length && <li className={s.empty}>Nada agendado.</li>}</ul></div>
-      <div className={s.card}><div className={s.cardHead}><h2>Arquivos recentes</h2><Link href="/spaces" className={s.link}>Abrir spaces<ArrowRight size={14} /></Link></div><ul className={s.rows}>{recent.map(f => <li key={f.id}><Thumb file={f} className={s.miniThumb} showKind={false} /><Link href={f.folderId ? `/pastas/${f.folderId}` : `/spaces/${f.spaceId}`} className={s.rowText}><b>{f.name}</b><small>{folderLabel(drive, f.folderId) || drive.spaces.find(x => x.id === f.spaceId)?.name} · {formatSize(f.size)} · {formatDate((f.updatedAt ?? f.createdAt).slice(0, 10))}</small></Link></li>)}</ul></div>
+      <div className={s.card}><div className={s.cardHead}><h2>Arquivos recentes</h2><Link href="/spaces" className={s.link}>Abrir spaces<ArrowRight size={14} /></Link></div><ul className={s.rows}>{recent.map(f => <li key={f.id}><Thumb file={f} className={s.miniThumb} showKind={false} /><Link href={f.folderId ? `/pastas/${f.folderId}` : `/spaces/${f.spaceId}`} className={s.rowText}><b>{f.name}</b><small>{folderLabel(drive, f.folderId) || drive.spaces.find(x => x.id === f.spaceId)?.name} · {formatSize(f.size)} · {formatDate((f.updatedAt ?? f.createdAt).slice(0, 10))}</small></Link></li>)}{!recent.length && <li className={s.empty}>Nenhum arquivo ainda. Envie vídeos e imagens em Spaces.</li>}</ul></div>
     </div>
-    <div className={s.card} style={{ marginTop: 18 }}><div className={s.cardHead}><h2>Publicados recentemente</h2></div><ul className={s.rows}>{published.slice(0, 5).map(p => <PostRow key={p.id} post={p} />)}</ul></div>
+    <div className={s.card} style={{ marginTop: 18 }}><div className={s.cardHead}><h2>Publicados recentemente</h2></div><ul className={s.rows}>{published.slice(0, 5).map(p => <PostRow key={p.id} post={p} />)}{!published.length && <li className={s.empty}>Nada publicado ainda.</li>}</ul></div>
   </section>
 }

@@ -89,6 +89,21 @@ Configuração: no Clerk, ative a integração com o Supabase e as Organizations
 
 Copie `.env.example` para `.env.local` e preencha as chaves.
 
+### Tudo no Supabase
+
+Com login, cada parte do app lê e grava o workspace ativo no banco, pela mesma fila de gravação em segundo plano (`src/lib/sync.ts`): a tela muda na hora, as gravações saem em ordem, e uma falha recarrega do banco. Uma ação feita enquanto o app ainda carrega espera o workspace em vez de se perder.
+
+- Spaces (abaixo), posts (`posts`, `post_files`, `post_accounts`; agendar cria as tarefas em `publish_jobs`) e contas (`social_accounts`; a conexão ainda é simulada, a pessoa informa o @).
+- Editor: projetos e versões em `editor_projects` / `editor_versions` (o projeto inteiro em `data`), salvos um instante depois de cada mudança. Vídeos, imagens e áudios dos clipes tocam do arquivo real de Spaces.
+- Notificações (`notifications`, por pessoa), preferências de aparência, notificações e publicação (`user_settings`) e permissões do plugin (`plugin_tool_modes`).
+- Configurações → Dados e backup exporta o workspace em JSON.
+
+`20261103000002_post_files_cascade.sql`: excluir um arquivo de vez tira ele dos posts que o usavam.
+
+### Webhook do Clerk
+
+`/api/clerk/webhook` apaga do banco e do bucket o que foi excluído no Clerk: `organization.deleted` (o workspace inteiro e os arquivos), `user.deleted` (perfil, preferências, favoritos, recentes e notificações da pessoa) e `organizationMembership.deleted`. Precisa de `CLERK_WEBHOOK_SIGNING_SECRET` e `SUPABASE_SECRET_KEY`. No Clerk: Webhooks → Add endpoint → `https://<seu domínio>/api/clerk/webhook`, com esses três eventos.
+
 ### Spaces no Supabase
 
 Com login, Spaces lê e grava no banco (`src/features/spaces/remote.ts`): spaces, pastas, arquivos, lixeira, favoritos e recentes. A tela atualiza na hora e salva em segundo plano, em ordem; se algo falhar, aparece um aviso e a lista é recarregada do banco. Os arquivos vão para o bucket privado `media` em `<workspace>/<arquivo>/<nome>`, e a miniatura (`thumb.jpg`) é feita no navegador no envio. Para abrir, o app pede links temporários (1 hora). Ao voltar para a aba, a lista é atualizada para mostrar o que a equipe mudou. Sem as variáveis do Supabase, Spaces continua como demonstração no navegador.

@@ -8,7 +8,8 @@ import { useDrive } from '@/features/spaces/hooks'
 import { Thumb } from '@/features/spaces/Thumb'
 import { formatDateTime } from '@/lib/format'
 import { NetworkIcon, StatusPill } from './badges'
-import { accounts, formatLabel, type Post, type PostStatus } from './data'
+import { formatLabel, type Post, type PostStatus } from './data'
+import { getAccounts, useAccounts } from './accounts'
 import { deletePost, duplicatePost, nowStamp, reschedule, restorePost, savePost, usePosts } from './store'
 import s from '@/components/ui.module.css'
 import p from './posts.module.css'
@@ -25,7 +26,7 @@ export function PostRow({ post, onDelete, onOpen, onMenu }: { post: Post; onDele
   return <li className={onOpen ? p.clickRow : ''} onClick={onOpen} onContextMenu={onMenu ? ev => { ev.preventDefault(); onMenu(ev) } : undefined}>
     {f && <Thumb file={f} className={s.miniThumb} showKind={false} />}
     <span className={s.rowText}><b>{post.caption || 'Sem legenda'}</b><small>{formatLabel[post.format]}{post.fileIds.length > 1 ? ` · ${post.fileIds.length} arquivos` : ''} · {formatDateTime(post.date)}</small></span>
-    <span className={s.netIcons}>{post.accountIds.map(id => { const a = accounts.find(x => x.id === id); return a && <NetworkIcon key={id} network={a.network} /> })}</span>
+    <span className={s.netIcons}>{post.accountIds.map(id => { const a = getAccounts().find(x => x.id === id); return a && <NetworkIcon key={id} network={a.network} /> })}</span>
     {post.metrics && <span className={s.metrics}><span><Eye size={14} />{post.metrics.views.toLocaleString('pt-BR')}</span><span><Heart size={14} />{post.metrics.likes}</span><span><MessageCircle size={14} />{post.metrics.comments}</span><span><Repeat2 size={14} />{post.metrics.shares}</span></span>}
     <StatusPill status={post.status} />
     {post.url && <a className={s.iconBtn} href={post.url} target="_blank" rel="noreferrer" aria-label="Abrir no Instagram" onClick={ev => ev.stopPropagation()}><ExternalLink size={16} /></a>}
@@ -40,6 +41,7 @@ type Menu = { x: number; y: number; post: Post } | null
 export function PostsView({ openPostId }: { openPostId?: string }) {
   const router = useRouter()
   const { posts } = usePosts()
+  useAccounts() // re-render when the workspace's accounts load (rows below look them up)
   const [mode, setMode] = useState<'lista' | 'semana' | 'mes'>('lista')
   const [status, setStatus] = useState<PostStatus | 'todos'>('todos')
   const [q, setQ] = useState('')
@@ -119,7 +121,7 @@ export function PostsView({ openPostId }: { openPostId?: string }) {
   const chip = (x: Post) => <button key={x.id} className={`${p.chip} ${x.status === 'publicado' ? p.chipLocked : ''}`} style={{ background: tone[x.status] }} {...dragProps(x)}
     onClick={ev => { ev.stopPropagation(); setOpen(x.id) }} onContextMenu={ev => { ev.preventDefault(); showMenu(ev, x) }} title={`${x.caption}${x.status === 'publicado' ? ' · já publicado' : ' · arraste para reagendar'}`}>
     <b>{x.date.slice(11, 16)}</b><span>{formatLabel[x.format]}</span>
-    <span className={p.chipNets}>{x.accountIds.map(id => { const a = accounts.find(y => y.id === id); return a && <NetworkIcon key={id} network={a.network} size={14} /> })}</span>
+    <span className={p.chipNets}>{x.accountIds.map(id => { const a = getAccounts().find(y => y.id === id); return a && <NetworkIcon key={id} network={a.network} size={14} /> })}</span>
   </button>
   const earlyThisWeek = posts.filter(x => weekDays.some(d => x.date.startsWith(dayKey(d))) && +x.date.slice(11, 13) < HOURS[0]).length
 
@@ -189,7 +191,7 @@ function DrawerBody({ post }: { post: Post }) {
     <div className={s.props}>
       <div>Formato<b>{formatLabel[post.format]}{post.fileIds.length > 1 ? ` · ${post.fileIds.length} arquivos` : ''}</b></div>
       <div>{post.status === 'publicado' ? 'Publicado em' : 'Data'}<b>{formatDateTime(post.date)}</b></div>
-      <div>Contas<b className={p.drawerNets}>{post.accountIds.map(id => { const a = accounts.find(x => x.id === id); return a && <span key={id}><NetworkIcon network={a.network} size={16} />{a.handle}</span> })}</b></div>
+      <div>Contas<b className={p.drawerNets}>{post.accountIds.map(id => { const a = getAccounts().find(x => x.id === id); return a && <span key={id}><NetworkIcon network={a.network} size={16} />{a.handle}</span> })}</b></div>
     </div>
     {post.metrics && <div className={p.metricsGrid}>
       <span><Eye size={15} /><b>{post.metrics.views.toLocaleString('pt-BR')}</b>visualizações</span>

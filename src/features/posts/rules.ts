@@ -1,6 +1,7 @@
 // What each network accepts, and the problems a post would hit before it is published.
 import type { DFile } from '@/features/spaces/store'
-import { accounts, networkLabel, type Network, type PostFormat } from './data'
+import { networkLabel, type Network, type PostFormat } from './data'
+import { getAccounts } from './accounts'
 
 /** Caption limits per network. Instagram also caps hashtags. */
 export const limits: Record<Network, { chars: number; hashtags?: number }> = {
@@ -19,7 +20,7 @@ export const hashtags = (caption: string) => caption.match(/#[\p{L}\p{N}_]+/gu) 
 export const mentions = (caption: string) => caption.match(/@[\w.]+/g) ?? []
 
 export function networksOf(accountIds: string[]): Network[] {
-  return [...new Set(accountIds.map(id => accounts.find(a => a.id === id)?.network).filter((n): n is Network => !!n))]
+  return [...new Set(accountIds.map(id => getAccounts().find(a => a.id === id)?.network).filter((n): n is Network => !!n))]
 }
 
 export function checkPost({ caption, accountIds, format, files }: { caption: string; accountIds: string[]; format: PostFormat; files: DFile[] }): Issue[] {
