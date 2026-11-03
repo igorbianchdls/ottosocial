@@ -1,43 +1,40 @@
-import { createServerClient } from '@supabase/ssr'
+import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse, type NextRequest } from 'next/server'
-import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigured } from './lib/supabase/env'
+import { supabaseConfigured } from './lib/supabase/env'
 
-const PUBLIC = ['/apresentacao', '/login', '/cadastro', '/recuperar-senha', '/auth']
-const GUEST_ONLY = ['/login', '/cadastro', '/recuperar-senha']
+// Pages anyone can open. Everything else needs a session with a workspace (Clerk organization).
+const PUBLIC = ['/apresentacao', '/login', '/cadastro']
 const under = (path: string, list: string[]) => list.some(p => path === p || path.startsWith(p + '/'))
 
-/** Keeps the Supabase session fresh and sends people to the right side of the login wall. */
-export async function proxy(request: NextRequest) {
-  if (!supabaseConfigured) return NextResponse.next()
-  let response = NextResponse.next({ request })
-  const sb = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (list, headers) => {
-        list.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({ request })
-        list.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-        Object.entries(headers ?? {}).forEach(([k, v]) => response.headers.set(k, v))
-      },
-    },
-  })
-  const { data } = await sb.auth.getClaims()
-  const signedIn = Boolean(data?.claims?.sub)
+/**
+ * Sends people to the right side of the login wall. This is navigation, not security:
+ * the data is protected by the database's row level security, which checks the Clerk token.
+ */
+const guard = clerkMiddleware(async (auth, request: NextRequest) => {
   const path = request.nextUrl.pathname
+  if (under(path, PUBLIC)) return
+  const { isAuthenticated, sessionStatus } = await auth()
+  if (isAuthenticated) return
+  // Signed in but still has to pick or create a workspace.
+  if (sessionStatus === 'pending') {
+    if (path === '/workspace') return
+    return NextResponse.redirect(new URL('/workspace', request.url))
+  }
+  if (path === '/') return NextResponse.redirect(new URL('/apresentacao', request.url))
+  const login = new URL('/login', request.url)
+  login.searchParams.set('redirect_url', request.nextUrl.pathname + request.nextUrl.search)
+  return NextResponse.redirect(login)
+})
 
-  const redirect = (to: string) => {
-    const r = NextResponse.redirect(new URL(to, request.url))
-    response.cookies.getAll().forEach(c => r.cookies.set(c))
-    return r
-  }
-  if (!signedIn && !under(path, PUBLIC)) {
-    return redirect(path === '/' ? '/apresentacao' : `/login?next=${encodeURIComponent(path + request.nextUrl.search)}`)
-  }
-  if (signedIn && under(path, GUEST_ONLY)) return redirect('/')
-  return response
+export function proxy(request: NextRequest, event: Parameters<typeof guard>[1]) {
+  if (!supabaseConfigured) return NextResponse.next()
+  return guard(request, event)
 }
 
 export const config = {
-  // Everything except Next internals and files with an extension (images, fonts, videos).
-  matcher: ['/((?!_next/|api/|favicon.ico|.*\\.[a-zA-Z0-9]+$).*)'],
+  matcher: [
+    // Everything except Next internals and files with an extension (images, fonts, videos).
+    '/((?!_next/|favicon.ico|.*\\.[a-zA-Z0-9]+$).*)',
+    '/(api|trpc)(.*)',
+  ],
 }

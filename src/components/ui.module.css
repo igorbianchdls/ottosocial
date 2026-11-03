@@ -19,6 +19,7 @@
 .badge { margin-left: auto; min-width: 22px; height: 18px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; }
 .countBadge { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 500; }
 .spacer { flex: 1; }
+.workspaceSwitch { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 .user { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 12px 8px 4px; border-top: 1px solid var(--line); }
 .user > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .user b { font-size: 13px; }

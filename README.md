@@ -75,15 +75,19 @@ O schema está em `supabase/migrations/20261102000001_init.sql`: workspaces e me
 - convites `workspace_invites`, aceitos com `accept_invite(token)` pelo e-mail convidado;
 - `tags` em arquivos.
 
-`20261102000003_signup_workspace.sql`: o cadastro cria o perfil e o primeiro workspace (com quem se cadastrou como dono), e apagar uma pessoa não apaga o que ela criou para a equipe.
+`20261102000003_signup_workspace.sql` e `20261102000004_thumb_from_browser.sql`: ajustes do cadastro antigo e da fila de miniaturas.
+
+`20261103000001_clerk.sql`: troca o Supabase Auth pelo Clerk. Pessoas são usuários do Clerk (`user_…`) e workspaces são Organizations do Clerk (`org_…`), então esses IDs viram texto. O app manda o token do Clerk; o Supabase aceita como login externo, e as regras de acesso leem a pessoa em `sub` e o workspace ativo em `o.id` (ou `org_id`). Só o workspace ativo é visível: trocar de workspace é trocar de organização no Clerk. Membros, convites e papéis ficam no Clerk; `workspace_members` é só a lista que o app mantém para mostrar nomes.
 
 Para aplicar: Supabase → SQL Editor → colar os arquivos em ordem → Run (ou `supabase db push`).
 
-### Login
+### Login (Clerk)
 
-Login, cadastro, "esqueci a senha" e sair usam o Supabase Auth (`src/lib/supabase`). O `src/proxy.ts` mantém a sessão nos cookies e manda quem não entrou para `/login` (ou `/apresentacao`, na raiz). Links dos e-mails do Supabase voltam por `/auth/callback`; a senha nova é criada em `/nova-senha`. Sem as variáveis `NEXT_PUBLIC_SUPABASE_*` o app roda como demonstração, sem login.
+Login, cadastro, recuperação de senha, verificação de e-mail, Google, membros, convites e troca de workspace são do Clerk, em português (`@clerk/localizations`), dentro do visual do app em `/login`, `/cadastro` e `/workspace` (quem ainda não tem workspace cria ou aceita um convite ali). O `src/proxy.ts` usa o `clerkMiddleware` para mandar quem não entrou para `/login` (ou `/apresentacao`, na raiz); a proteção dos dados é a RLS do banco. `AccountSync` cria o perfil, o workspace e a linha de membro no primeiro acesso e abre os Spaces do workspace ativo. Em Configurações, "Gerenciar conta" e "Membros e convites" abrem as telas do Clerk.
 
-Copie `.env.example` para `.env.local` e preencha a chave publicável do projeto.
+Configuração: no Clerk, ative a integração com o Supabase e as Organizations; no Supabase, adicione o Clerk em Authentication → Sign In / Providers → Third-Party Auth. Sem as variáveis do Clerk e do Supabase o app roda como demonstração, sem login.
+
+Copie `.env.example` para `.env.local` e preencha as chaves.
 
 ### Spaces no Supabase
 

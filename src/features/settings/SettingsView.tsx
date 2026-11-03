@@ -12,6 +12,8 @@ import { useAccounts } from '@/features/posts/accounts'
 import { NetworkIcon } from '@/features/posts/badges'
 import { kindInfo, type NotificationKind } from '../notifications/data'
 import { startTour } from '@/components/Tour'
+import { ManageAccountButton, ManageMembersButton } from '@/features/auth/AccountControls'
+import { useAccount } from '@/features/auth/account'
 import { APP_KEYS, resetSettings, updateSettings, useSettings, type Theme } from './store'
 import s from '@/components/ui.module.css'
 import c from './settings.module.css'
@@ -73,17 +75,19 @@ function Profile({ onSave }: { onSave: () => void }) {
     </div>
     <Row label="Nome"><input className={c.input} value={profile.name} onChange={e => updateSettings('profile', { name: e.target.value })} onBlur={onSave} /></Row>
     <Row label="Cargo" hint="Aparece para quem trabalha com você no workspace."><input className={c.input} value={profile.role} onChange={e => updateSettings('profile', { role: e.target.value })} onBlur={onSave} /></Row>
-    <Row label="E-mail e senha" hint="Entram com o login, na próxima fase."><span className={c.muted}>Em breve</span></Row>
+    <Row label="Conta" hint="E-mail, senha, login com Google, aparelhos conectados e excluir a conta."><ManageAccountButton className={s.secondary} fallback={<span className={c.muted}>Disponível com login</span>} /></Row>
   </Card>
 }
 
 function Workspace({ onSave }: { onSave: () => void }) {
   const { workspace } = useSettings()
+  const account = useAccount()
+  const readOnly = !!account && account.role !== 'admin'
   return <Card title="Workspace" text="A marca ou empresa que usa este OttoSocial.">
-    <Row label="Nome do workspace"><input className={c.input} value={workspace.name} onChange={e => updateSettings('workspace', { name: e.target.value })} onBlur={onSave} /></Row>
+    <Row label="Nome do workspace" hint={readOnly ? 'Só admins mudam o nome.' : undefined}><input className={c.input} value={workspace.name} disabled={readOnly} onChange={e => updateSettings('workspace', { name: e.target.value })} onBlur={onSave} /></Row>
     <Row label="Fuso horário" hint="Usado nos agendamentos e no calendário."><select className={c.input} value={workspace.timezone} onChange={e => { updateSettings('workspace', { timezone: e.target.value }); onSave() }}>{timezones.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Row>
     <Row label="Idioma"><select className={c.input} value={workspace.language} onChange={e => { updateSettings('workspace', { language: e.target.value }); onSave() }}><option value="pt-BR">Português (Brasil)</option><option value="en" disabled>English (em breve)</option><option value="es" disabled>Español (em breve)</option></select></Row>
-    <Row label="Membros" hint="Convidar pessoas e dar permissões entra com o login."><span className={c.muted}>Só você, por enquanto</span></Row>
+    <Row label="Membros" hint="Convide pessoas por e-mail e escolha quem é admin."><ManageMembersButton className={s.secondary} fallback={<span className={c.muted}>Disponível com login</span>} /></Row>
   </Card>
 }
 

@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Blocks, CalendarClock, Clapperboard, Clock, FolderClosed, House, LogOut, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2, UsersRound } from 'lucide-react'
+import { Bell, Blocks, CalendarClock, Clapperboard, Clock, FolderClosed, House, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2, UsersRound } from 'lucide-react'
 import { useDrive } from '@/features/spaces/hooks'
 import { openPalette } from './CommandPalette'
 import { useVisibleNotifications } from '@/features/notifications/NotificationsView'
 import { useSettings } from '@/features/settings/store'
-import { signOut } from '@/features/auth/session'
+import { SignOutButton, WorkspaceSwitcher } from '@/features/auth/AccountControls'
+import { CLERK_KEY } from '@/lib/supabase/env'
 import s from './ui.module.css'
 
 export function Sidebar() {
@@ -40,6 +41,7 @@ export function Sidebar() {
       {item('/configuracoes', 'Configurações', Settings, path.startsWith('/configuracoes'))}
       {item('/notificacoes', 'Notificações', Bell, path === '/notificacoes', unread > 0 ? <span className={s.badge}>{unread}</span> : undefined)}
     </div>
-    <div className={s.user}><span className={s.avatar} style={{ background: profile.color }}>{profile.name.trim()[0]?.toUpperCase() ?? '?'}</span><span><b>{profile.name || 'Sem nome'}</b><small>Workspace {workspace.name}</small></span><button type="button" className={s.iconBtn} aria-label="Sair" title="Sair" onClick={() => signOut()}><LogOut size={17} /></button></div>
+    <WorkspaceSwitcher className={s.workspaceSwitch} />
+    <div className={s.user}><span className={s.avatar} style={{ background: profile.color }}>{profile.name.trim()[0]?.toUpperCase() ?? '?'}</span><span><b>{profile.name || 'Sem nome'}</b><small>{CLERK_KEY ? profile.role || 'Minha conta' : `Workspace ${workspace.name}`}</small></span><SignOutButton className={s.iconBtn} /></div>
   </aside>
 }
