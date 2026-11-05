@@ -28,23 +28,25 @@ export type Connector = {
   network?: Network
   /** Composio toolkit slug, to check against the Composio dashboard when setting up its auth config. */
   toolkit: string
+  /** An action of the service that reads the connected account (no arguments), to label it ("@marca", the e-mail). */
+  profileTool?: string
 }
 
 export const connectors: Connector[] = [
   // ---------- redes sociais ----------
-  { id: 'instagram', logo: '/logos/connectors/instagram-icon.svg', name: 'Instagram', category: 'redes', network: 'instagram', toolkit: 'instagram', color: '#d62976',
+  { id: 'instagram', profileTool: 'INSTAGRAM_GET_USER_INFO', logo: '/logos/connectors/instagram-icon.svg', name: 'Instagram', category: 'redes', network: 'instagram', toolkit: 'instagram', color: '#d62976',
     description: 'Publicar Reels, Feed e Stories e ler as métricas.', permissions: ['Publicar Reels, Feed e Stories', 'Ler métricas dos posts', 'Ler comentários'] },
   { id: 'tiktok', logo: '/logos/connectors/tiktok-icon.svg', name: 'TikTok', category: 'redes', network: 'tiktok', toolkit: 'tiktok', color: '#111111',
     description: 'Publicar vídeos e fotos e acompanhar as visualizações.', permissions: ['Publicar vídeos e fotos', 'Ler métricas dos vídeos'] },
-  { id: 'linkedin', logo: '/logos/connectors/linkedin-icon.svg', name: 'LinkedIn', category: 'redes', network: 'linkedin', toolkit: 'linkedin', color: '#0a66c2',
+  { id: 'linkedin', profileTool: 'LINKEDIN_GET_MY_INFO', logo: '/logos/connectors/linkedin-icon.svg', name: 'LinkedIn', category: 'redes', network: 'linkedin', toolkit: 'linkedin', color: '#0a66c2',
     description: 'Publicar na página da empresa e ler o alcance.', permissions: ['Publicar na página da empresa', 'Ler métricas da página'] },
   { id: 'youtube', logo: '/logos/connectors/youtube-icon.svg', name: 'YouTube', category: 'redes', network: 'youtube', toolkit: 'youtube', color: '#ff0000',
     description: 'Publicar Shorts e ler as métricas do canal.', permissions: ['Publicar Shorts e vídeos', 'Ler métricas do canal'] },
-  { id: 'facebook', logo: '/logos/connectors/facebook.svg', name: 'Facebook', category: 'redes', toolkit: 'facebook', color: '#1877f2',
+  { id: 'facebook', profileTool: 'FACEBOOK_GET_CURRENT_USER', logo: '/logos/connectors/facebook.svg', name: 'Facebook', category: 'redes', toolkit: 'facebook', color: '#1877f2',
     description: 'Publicar na página e ler curtidas e comentários.', permissions: ['Publicar na página', 'Ler métricas e comentários da página'] },
   { id: 'twitter', logo: '/logos/connectors/x.svg', name: 'X', category: 'redes', toolkit: 'twitter', color: '#111111',
     description: 'Publicar posts e acompanhar o engajamento.', permissions: ['Publicar posts', 'Ler métricas dos posts'] },
-  { id: 'pinterest', logo: '/logos/connectors/pinterest.svg', name: 'Pinterest', category: 'redes', toolkit: 'pinterest', color: '#e60023',
+  { id: 'pinterest', profileTool: 'PINTEREST_GET_PROFILE', logo: '/logos/connectors/pinterest.svg', name: 'Pinterest', category: 'redes', toolkit: 'pinterest', color: '#e60023',
     description: 'Criar pins a partir dos seus vídeos e imagens.', permissions: ['Criar pins nas suas pastas', 'Ler métricas dos pins'] },
 
   // ---------- anúncios ----------
@@ -54,20 +56,20 @@ export const connectors: Connector[] = [
     description: 'Campanhas de pesquisa e do YouTube em um só lugar.', permissions: ['Ver campanhas, gasto e conversões'] },
   { id: 'linkedinads', logo: '/logos/connectors/linkedin-icon.svg', name: 'LinkedIn Ads', category: 'anuncios', toolkit: 'linkedin_ads', color: '#0a66c2',
     description: 'Resultados das campanhas e dos posts patrocinados.', permissions: ['Ver campanhas, gasto e resultados'] },
-  { id: 'tiktokads', logo: '/logos/connectors/tiktok-icon.svg', name: 'TikTok Ads', category: 'anuncios', toolkit: 'tiktok_ads', color: '#111111',
+  { id: 'tiktokads', profileTool: 'TIKTOK_ADS_GET_USER_INFO', logo: '/logos/connectors/tiktok-icon.svg', name: 'TikTok Ads', category: 'anuncios', toolkit: 'tiktok_ads', color: '#111111',
     description: 'Gasto e resultados dos anúncios no TikTok.', permissions: ['Ver campanhas, gasto e resultados'] },
 
   { id: 'pinterestads', logo: '/logos/connectors/pinterest.svg', name: 'Pinterest Ads', category: 'anuncios', toolkit: 'pinterest_ads', color: '#e60023',
     description: 'Campanhas e resultados dos pins promovidos.', permissions: ['Ver campanhas, gasto e resultados'] },
 
   // ---------- arquivos e design ----------
-  { id: 'googledrive', logo: '/logos/connectors/google-drive.svg', name: 'Google Drive', category: 'arquivos', toolkit: 'googledrive', color: '#1fa463',
+  { id: 'googledrive', profileTool: 'GOOGLEDRIVE_GET_ABOUT', logo: '/logos/connectors/google-drive.svg', name: 'Google Drive', category: 'arquivos', toolkit: 'googledrive', color: '#1fa463',
     description: 'Importar vídeos e imagens de uma pasta para os Spaces.', permissions: ['Ver e baixar os arquivos que você escolher', 'Acompanhar uma pasta para importar o que chegar nela'] },
-  { id: 'dropbox', logo: '/logos/connectors/dropbox.svg', name: 'Dropbox', category: 'arquivos', toolkit: 'dropbox', color: '#0061ff',
+  { id: 'dropbox', profileTool: 'DROPBOX_GET_ABOUT_ME', logo: '/logos/connectors/dropbox.svg', name: 'Dropbox', category: 'arquivos', toolkit: 'dropbox', color: '#0061ff',
     description: 'Trazer os arquivos da equipe para os Spaces.', permissions: ['Ver e baixar os arquivos que você escolher'] },
   { id: 'onedrive', logo: '/logos/connectors/microsoft-onedrive.svg', name: 'OneDrive', category: 'arquivos', toolkit: 'one_drive', color: '#0078d4',
     description: 'Importar mídia do OneDrive para os Spaces.', permissions: ['Ver e baixar os arquivos que você escolher'] },
-  { id: 'canva', name: 'Canva', category: 'arquivos', toolkit: 'canva', color: '#00c4cc',
+  { id: 'canva', profileTool: 'CANVA_FETCH_CURRENT_USER_DETAILS', name: 'Canva', category: 'arquivos', toolkit: 'canva', color: '#00c4cc',
     description: 'Trazer artes prontas direto para os Spaces e o editor.', permissions: ['Ver os seus designs', 'Exportar designs como imagem ou vídeo'] },
 
   { id: 'notion', logo: '/logos/connectors/notion-icon.svg', name: 'Notion', category: 'arquivos', toolkit: 'notion', color: '#191919',
@@ -80,19 +82,19 @@ export const connectors: Connector[] = [
     description: 'Exportar métricas e importar um calendário de posts de uma planilha.', permissions: ['Ler e escrever nas planilhas que você escolher'] },
   { id: 'shopify', logo: '/logos/connectors/shopify.svg', name: 'Shopify', category: 'dados', toolkit: 'shopify', color: '#5e8e3e',
     description: 'Transformar produtos da loja em posts, com foto, preço e link.', permissions: ['Ver produtos e coleções da loja'] },
-  { id: 'hubspot', logo: '/logos/connectors/hubspot.svg', name: 'HubSpot', category: 'dados', toolkit: 'hubspot', color: '#ff7a59',
+  { id: 'hubspot', profileTool: 'HUBSPOT_GET_ACCOUNT_INFO', logo: '/logos/connectors/hubspot.svg', name: 'HubSpot', category: 'dados', toolkit: 'hubspot', color: '#ff7a59',
     description: 'Ligar posts e campanhas aos contatos e negócios do CRM.', permissions: ['Ver contatos, negócios e campanhas'] },
   { id: 'rdstation', name: 'RD Station', category: 'dados', toolkit: 'rd_station_marketing', color: '#1b4bd1',
     description: 'Ver os leads que chegaram pelas redes e as campanhas de marketing.', permissions: ['Ver leads, campanhas e conversões'] },
 
   // ---------- avisos ----------
-  { id: 'slack', logo: '/logos/connectors/slack-icon.svg', name: 'Slack', category: 'avisos', toolkit: 'slack', color: '#4a154b',
+  { id: 'slack', profileTool: 'SLACK_RETRIEVE_USER_PROFILE_INFORMATION', logo: '/logos/connectors/slack-icon.svg', name: 'Slack', category: 'avisos', toolkit: 'slack', color: '#4a154b',
     description: 'Avisar um canal quando um post sai, falha ou espera aprovação.', permissions: ['Enviar mensagens no canal que você escolher'] },
-  { id: 'gmail', logo: '/logos/connectors/google-gmail.svg', name: 'Gmail', category: 'avisos', toolkit: 'gmail', color: '#ea4335',
+  { id: 'gmail', profileTool: 'GMAIL_GET_PROFILE', logo: '/logos/connectors/google-gmail.svg', name: 'Gmail', category: 'avisos', toolkit: 'gmail', color: '#ea4335',
     description: 'Mandar o resumo da semana e os alertas por e-mail.', permissions: ['Enviar e-mails em seu nome para a equipe'] },
   { id: 'whatsapp', logo: '/logos/connectors/whatsapp-icon.svg', name: 'WhatsApp', category: 'avisos', toolkit: 'whatsapp', color: '#25d366',
     description: 'Receber no celular quando algo precisa da sua atenção.', permissions: ['Enviar mensagens para os números cadastrados'] },
-  { id: 'teams', logo: '/logos/connectors/microsoft-teams.svg', name: 'Microsoft Teams', category: 'avisos', toolkit: 'microsoft_teams', color: '#5b5fc7',
+  { id: 'teams', profileTool: 'MICROSOFT_TEAMS_GET_MY_PROFILE', logo: '/logos/connectors/microsoft-teams.svg', name: 'Microsoft Teams', category: 'avisos', toolkit: 'microsoft_teams', color: '#5b5fc7',
     description: 'Avisar um canal do Teams quando um post sai, falha ou espera aprovação.', permissions: ['Enviar mensagens no canal que você escolher'] },
   { id: 'telegram', logo: '/logos/connectors/telegram.svg', name: 'Telegram', category: 'avisos', toolkit: 'telegram', color: '#229ed9',
     description: 'Receber os alertas por um bot do Telegram.', permissions: ['Enviar mensagens pelo bot para o seu chat ou grupo'] },

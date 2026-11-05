@@ -10,6 +10,7 @@ import { revokeKeysOf } from '@/features/apikeys/server'
  *    (what they created for the team stays)
  *  - organizationMembership.deleted → their row in the workspace's roster, and their API keys there stop working
  *  - user.deleted also revokes their API keys everywhere
+ *  - organizationMembership.created / updated → their role in the roster
  * Signed by Clerk (Svix); set CLERK_WEBHOOK_SIGNING_SECRET and SUPABASE_SECRET_KEY.
  */
 export async function POST(req: NextRequest) {
@@ -29,6 +30,15 @@ export async function POST(req: NextRequest) {
     for (const [table, column] of [['favorites', 'user_id'], ['recents', 'user_id'], ['notifications', 'user_id'], ['user_settings', 'user_id'], ['workspace_members', 'user_id'], ['profiles', 'id']] as const) {
       const { error } = await sb.from(table).delete().eq(column, user)
       if (error) return new Response(error.message, { status: 500 })
+    }
+  }
+  // A role changed in Clerk (admin ↔ member): the roster follows, so the site and the API see it.
+  if (evt.type === 'organizationMembership.updated' || evt.type === 'organizationMembership.created') {
+    const ws = evt.data.organization?.id, user = evt.data.public_user_data?.user_id
+    const role = evt.data.role === 'org:admin' ? 'admin' : 'membro'
+    if (ws && user) {
+      const { data: wsRow } = await sb.from('workspaces').select('id').eq('id', ws).maybeSingle()
+      if (wsRow) await sb.from('workspace_members').upsert({ workspace_id: ws, user_id: user, role }, { onConflict: 'workspace_id,user_id' })
     }
   }
   if (evt.type === 'organizationMembership.deleted') {

@@ -12,12 +12,13 @@ import k from './apikeys.module.css'
 
 const noSubscribe = () => () => {}
 
-type Scope = 'ler' | 'usar' | 'conectar'
+type Scope = 'ler' | 'usar' | 'agir' | 'conectar'
 type Key = { id: string; name: string; prefix: string; scopes: Scope[]; created_at: string; last_used_at: string | null }
 
 const scopeInfo: Record<Scope, { label: string; text: string }> = {
   ler: { label: 'Ler', text: 'Ver os conectores, o status e as ações de cada serviço.' },
-  usar: { label: 'Usar os serviços', text: 'Executar ações nos serviços conectados (ex.: buscar arquivos, enviar mensagem, publicar).' },
+  usar: { label: 'Usar os serviços', text: 'Executar ações de leitura nos serviços conectados (ex.: buscar arquivos, ler e-mails, ver métricas).' },
+  agir: { label: 'Agir nos serviços', text: 'Executar ações que enviam, publicam, alteram ou apagam (ex.: enviar e-mail, publicar post). Use com cuidado.' },
   conectar: { label: 'Conectar serviços', text: 'Gerar links de login e desconectar serviços. Só para administradores.' },
 }
 
@@ -81,7 +82,8 @@ export function ApiKeysSection({ onToast }: { onToast: (t: string) => void }) {
         <li><b>Ver conectores:</b> <code>GET /api/v1/conectores</code></li>
         <li><b>Conectar um serviço:</b> <code>POST /api/v1/conectores/googledrive/conectar</code> devolve um link. Uma pessoa abre e autoriza; o agente não faz login sozinho.</li>
         <li><b>Ver as ações de um serviço:</b> <code>GET /api/v1/conectores/gmail/acoes</code></li>
-        <li><b>Executar uma ação:</b> <code>POST /api/v1/conectores/gmail/executar</code> com <code>{`{ "acao": "GMAIL_SEND_EMAIL", "argumentos": { … } }`}</code></li>
+        <li><b>Executar uma ação:</b> <code>POST /api/v1/conectores/gmail/executar</code> com <code>{`{ "acao": "GMAIL_FETCH_EMAILS", "argumentos": { … } }`}</code>. Ações que enviam, publicam, alteram ou apagam pedem a permissão “Agir nos serviços”.</li>
+        <li><b>Limites por chave:</b> 60 pedidos por minuto, 5.000 por dia e 500 ações executadas por dia.</li>
       </ul>
       <p className={k.warn}><ShieldAlert size={15} />A chave age em seu nome. Não compartilhe nem coloque em código público. Se vazar, revogue e crie outra.</p>
     </div>

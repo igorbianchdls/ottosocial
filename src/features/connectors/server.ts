@@ -2,7 +2,7 @@ import 'server-only'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { connectorById } from './catalog'
-import { authConfigFor, createLink, deleteAccount, type AccountStatus } from './composio'
+import { authConfigFor, createLink, deleteAccount, executeTool, type AccountStatus } from './composio'
 
 /** Who is asking: the person, the active workspace and whether they are its admin (only admins connect). */
 export async function whoIsAsking() {
@@ -57,6 +57,7 @@ export async function startConnection(opts: { workspace: string; userId: string;
   const authConfigId = authConfigFor(connector.id)
   if (!authConfigId) throw new ConnectorError(`${connector.name} ainda não está disponível.`, 409)
   const sb = supabaseAdmin()
+  await sweepAbandoned(opts.workspace)
   const connectionId = crypto.randomUUID()
   const callbackUrl = new URL(`/api/conectores/retorno?conexao=${connectionId}`, opts.origin).toString()
   try {
@@ -95,4 +96,49 @@ export async function activeConnection(workspace: string, connector: string) {
   const { data } = await supabaseAdmin().from('connectors').select('id, connector, status, account_label, composio_account_id, connected_at')
     .eq('workspace_id', workspace).eq('connector', connector).eq('status', 'conectado').order('connected_at', { ascending: false }).limit(1).maybeSingle()
   return data
+}
+
+/**
+ * Connections left half way (the person never finished the login) for more than an hour: removed here and
+ * at Composio. Runs when the workspace starts a new connection, so nothing piles up.
+ */
+async function sweepAbandoned(workspace: string) {
+  const sb = supabaseAdmin()
+  const cutoff = new Date(Date.now() - 3_600_000).toISOString()
+  const { data } = await sb.from('connectors').select('id, composio_account_id').eq('workspace_id', workspace).eq('status', 'conectando').lt('created_at', cutoff)
+  for (const row of data ?? []) {
+    if (row.composio_account_id) await deleteAccount(row.composio_account_id).catch(e => console.error('conectores: limpeza no Composio', e))
+    await sb.from('connectors').delete().eq('id', row.id)
+  }
+}
+
+// The first of these keys found in a profile answer names the account, in this order.
+const LABEL_KEYS = ['username', 'emailAddress', 'email', 'mail', 'userPrincipalName', 'login', 'display_name', 'displayName', 'name', 'localizedFirstName']
+
+function findLabel(value: unknown, depth = 0): string | undefined {
+  if (!value || typeof value !== 'object' || depth > 4) return
+  const obj = value as Record<string, unknown>
+  for (const k of LABEL_KEYS) if (typeof obj[k] === 'string' && obj[k]) return obj[k] as string
+  for (const v of Object.values(obj)) { const found = findLabel(v, depth + 1); if (found) return found }
+}
+
+/**
+ * How the connected account should read ("@marca", the e-mail, the page): Composio rarely says, so the
+ * service's own profile action is asked once, right after connecting. Best effort: empty when it can't tell.
+ */
+export async function accountLabel(connector: string, accountId: string, workspace: string): Promise<string> {
+  const c = connectorById(connector)
+  if (!c?.profileTool) return ''
+  try {
+    const r = await Promise.race([
+      executeTool({ tool: c.profileTool, accountId, workspace, args: {} }),
+      new Promise<null>(resolve => setTimeout(() => resolve(null), 8000)),
+    ])
+    const label = r?.successful === false ? undefined : findLabel(r?.data)
+    if (!label) return ''
+    return c.network && c.network !== 'linkedin' && !label.includes('@') && !label.includes(' ') ? `@${label}` : label
+  } catch (e) {
+    console.error('conectores: não deu para ler o perfil', e)
+    return ''
+  }
 }

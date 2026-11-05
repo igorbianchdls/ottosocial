@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { connectorById } from '@/features/connectors/catalog'
-import { getAccount } from '@/features/connectors/composio'
-import { logActivity, syncSocialAccount, whoIsAsking } from '@/features/connectors/server'
+import { deleteAccount, getAccount } from '@/features/connectors/composio'
+import { accountLabel, logActivity, syncSocialAccount, whoIsAsking } from '@/features/connectors/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
 /**
@@ -26,18 +26,22 @@ export async function GET(request: NextRequest) {
     const account = await getAccount(row.composio_account_id)
     if (account.workspace && account.workspace !== row.workspace_id) throw new Error('conta de outro workspace')
     const ok = account.status === 'conectado'
+    const label = ok ? (account.label || await accountLabel(row.connector, row.composio_account_id, row.workspace_id)) : ''
+    // A login that did not finish leaves nothing behind at Composio.
+    if (!ok) await deleteAccount(row.composio_account_id).catch(e => console.error('conectores: limpeza no Composio', e))
     await sb.from('connectors').update({
       status: ok ? 'conectado' : 'erro',
-      account_label: account.label,
+      account_label: label,
+      ...(ok ? {} : { composio_account_id: null }),
       connected_at: ok ? new Date().toISOString() : null,
       error: ok ? null : 'O login não foi concluído.',
     }).eq('id', row.id)
     if (ok) {
       // Another connection of the same service that was left half way is dropped.
       await sb.from('connectors').delete().eq('workspace_id', row.workspace_id).eq('connector', row.connector).eq('status', 'conectando').neq('id', row.id)
-      await syncSocialAccount(sb, row.workspace_id, row.connector, 'conectado', account.label, row.composio_account_id)
+      await syncSocialAccount(sb, row.workspace_id, row.connector, 'conectado', label, row.composio_account_id)
     }
-    await logActivity(sb, { workspace: row.workspace_id, connection: row.id, connector: row.connector, action: ok ? 'conectou' : 'erro', detail: ok ? `${name} conectado${account.label ? ` (${account.label})` : ''}.` : `O login do ${name} não foi concluído.`, actor: who.userId ?? null, apiKey: row.api_key_id })
+    await logActivity(sb, { workspace: row.workspace_id, connection: row.id, connector: row.connector, action: ok ? 'conectou' : 'erro', detail: ok ? `${name} conectado${label ? ` (${label})` : ''}.` : `O login do ${name} não foi concluído.`, actor: who.userId ?? null, apiKey: row.api_key_id })
     return back(`${page}?${ok ? 'ok' : 'erro'}=1`)
   } catch (e) {
     console.error('conectores: falha no retorno', e)

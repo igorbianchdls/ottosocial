@@ -67,13 +67,37 @@ export async function deleteAccount(accountId: string) {
   catch (e) { if (!(e instanceof ComposioError && e.status === 404)) throw e }
 }
 
-export type Tool = { slug: string; name: string; description: string; parameters: unknown }
-/** The actions a service offers (Composio "tools" of a toolkit), with the schema of their arguments. */
+/**
+ * What an action does, from Composio's hints: "leitura" only reads; "altera" creates, sends, publishes
+ * or changes something; "apaga" deletes. Without a read-only hint it counts as "altera" (the safe side).
+ */
+export type Effect = 'leitura' | 'altera' | 'apaga'
+export type Tool = { slug: string; name: string; description: string; parameters: unknown; effect: Effect }
+const effectOf = (tags: unknown): Effect => {
+  const t = Array.isArray(tags) ? tags : []
+  return t.includes('destructiveHint') ? 'apaga' : t.includes('readOnlyHint') ? 'leitura' : 'altera'
+}
+const toTool = (t: Record<string, unknown>): Tool => ({ slug: String(t.slug), name: String(t.name ?? t.slug), description: String(t.description ?? ''), parameters: t.input_parameters ?? {}, effect: effectOf(t.tags) })
+
+/** The actions a service offers (Composio "tools" of a toolkit), with the schema of their arguments. Deprecated ones are left out. */
 export async function listTools(toolkit: string, query?: string): Promise<Tool[]> {
-  const qs = new URLSearchParams({ toolkit_slug: toolkit, limit: '200' })
+  const qs = new URLSearchParams({ toolkit_slug: toolkit, limit: '300' })
   if (query) qs.set('query', query)
   const r = await call<{ items?: Record<string, unknown>[] }>('GET', `/api/v3.1/tools?${qs}`)
-  return (r.items ?? []).map(t => ({ slug: String(t.slug), name: String(t.name ?? t.slug), description: String(t.description ?? ''), parameters: t.input_parameters ?? {} }))
+  return (r.items ?? []).filter(t => !(Array.isArray(t.tags) && t.tags.includes('deprecated'))).map(toTool)
+}
+
+// Tool details barely change: kept for 10 minutes per server instance.
+const toolCache = new Map<string, { at: number; tool: Tool | null }>()
+/** One action, or null when Composio does not know it. */
+export async function getTool(slug: string): Promise<Tool | null> {
+  const hit = toolCache.get(slug)
+  if (hit && Date.now() - hit.at < 600_000) return hit.tool
+  let tool: Tool | null = null
+  try { tool = toTool(await call<Record<string, unknown>>('GET', `/api/v3.1/tools/${encodeURIComponent(slug)}`)) }
+  catch (e) { if (!(e instanceof ComposioError && e.status === 404)) throw e }
+  toolCache.set(slug, { at: Date.now(), tool })
+  return tool
 }
 
 /** Runs one action on a connected account. Composio answers { data, error, successful }. */
