@@ -49,7 +49,7 @@ export const connectors: Connector[] = [
     description: 'Campanhas do Instagram e do Facebook, gasto e resultados.', permissions: ['Ver campanhas, gasto e resultados', 'Impulsionar um post publicado (sempre com a sua confirmação)'] },
   { id: 'googleads', name: 'Google Ads', category: 'anuncios', toolkit: 'googleads', color: '#1a73e8',
     description: 'Campanhas de pesquisa e do YouTube em um só lugar.', permissions: ['Ver campanhas, gasto e conversões'] },
-  { id: 'linkedinads', name: 'LinkedIn Ads', category: 'anuncios', toolkit: 'linkedin', color: '#0a66c2',
+  { id: 'linkedinads', name: 'LinkedIn Ads', category: 'anuncios', toolkit: 'linkedin_ads', color: '#0a66c2',
     description: 'Resultados das campanhas e dos posts patrocinados.', permissions: ['Ver campanhas, gasto e resultados'] },
   { id: 'tiktokads', name: 'TikTok Ads', category: 'anuncios', toolkit: 'tiktok_ads', color: '#111111',
     description: 'Gasto e resultados dos anúncios no TikTok.', permissions: ['Ver campanhas, gasto e resultados'] },
