@@ -35,7 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     try {
       result = await executeTool({ tool: action, accountId: connection.composio_account_id, workspace: owner.workspace, args })
     } catch (e) {
-      if (e instanceof ComposioError && e.status < 500) return fail(`O ${connector.name} recusou a ação: ${e.message.replace(/^Composio [A-Z]+ \S+: /, '')}`, 422)
+      if (e instanceof ComposioError && e.status < 500) return fail(`O ${connector.name} recusou a ação: ${composioReason(e.message)}`, 422)
       throw e
     }
     await logActivity(supabaseAdmin(), {
@@ -44,4 +44,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     })
     return ok({ sucesso: result.successful !== false, efeito: tool.effect, dados: result.data ?? null, erro: result.error ?? null })
   }, { action: true, anyScope: true })
+}
+
+/** The readable part of a Composio error ("Composio POST /x: 404 {"error":{"message":"…"}}" → "…"). */
+function composioReason(message: string) {
+  const body = message.replace(/^Composio [A-Z]+ \S+: \d+ /, '')
+  try {
+    const j = JSON.parse(body) as { error?: { message?: string } | string; message?: string }
+    return (typeof j.error === 'object' ? j.error?.message : j.error) ?? j.message ?? body
+  } catch { return body }
 }
