@@ -1,4 +1,6 @@
 import { Html5Video, Img, interpolate, useCurrentFrame, useVideoConfig } from 'remotion'
+import { Video as MediaVideo } from '@remotion/media'
+import { useExporting } from '../exporting'
 import { Film, Image as ImageIcon } from 'lucide-react'
 import { media } from '../../project/data'
 import { FPS, type Clip } from '../../project/types'
@@ -39,8 +41,10 @@ export function MediaBlock({ clip, video }: { clip: Clip; video?: boolean }) {
 function Content({ clip, video, frame, size, blurred, flip }: { clip: Clip; video?: boolean; frame: number; size: { w: number; h: number }; blurred: boolean; flip: string }) {
   const m = media(clip.props.fileId)
   const url = useMediaUrl(clip.props.fileId)
+  const exporting = useExporting()
   const box = { position: 'absolute', left: '50%', top: '50%', width: size.w, height: size.h, transform: `translate(-50%, -50%) ${flip}`, overflow: 'hidden', filter: blurred ? 'blur(40px) brightness(.75)' : undefined } as const
   const fill = { width: '100%', height: '100%', objectFit: 'fill' } as const
+  if (url && video && exporting) return <div style={box}><MediaVideo src={url} trimBefore={clip.trimStart} playbackRate={clip.speed ?? 1} muted={blurred} volume={clip.props.volume ?? 1} objectFit="fill" style={{ width: '100%', height: '100%' }} /></div>
   if (url && video) return <div style={box}><Html5Video src={url} trimBefore={clip.trimStart} playbackRate={clip.speed ?? 1} muted={blurred} volume={clip.props.volume ?? 1} style={fill} pauseWhenBuffering /></div>
   if (url) return <div style={box}><Img src={url} style={fill} /></div>
   const [a, b] = tones[m?.tone ?? 'blue'] ?? tones.blue
@@ -48,7 +52,7 @@ function Content({ clip, video, frame, size, blurred, flip }: { clip: Clip; vide
   const zoom = interpolate(frame, [0, clip.duration], [1, 1.08])
   const Icon = video ? Film : ImageIcon
   return <div style={{ position: 'absolute', left: '50%', top: '50%', width: size.w, height: size.h, transform: `translate(-50%, -50%) ${flip}`, overflow: 'hidden', filter: blurred ? 'blur(40px) brightness(.75)' : undefined }}>
-    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 30% 20%, ${a}, ${b} 75%)`, transform: `scale(${zoom})` }} />
+    <div style={{ position: 'absolute', inset: 0, background: exporting ? `linear-gradient(160deg, ${a}, ${b} 80%)` : `radial-gradient(circle at 30% 20%, ${a}, ${b} 75%)`, transform: `scale(${zoom})` }} />
     {!blurred && <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18, color: 'rgba(255,255,255,.9)', textAlign: 'center', padding: 40 }}>
       <Icon size={video ? 120 : 90} strokeWidth={1.2} />
       <div style={{ fontSize: video ? 40 : 34, fontWeight: 600, maxWidth: '90%' }}>{m?.name ?? 'Arquivo'}</div>

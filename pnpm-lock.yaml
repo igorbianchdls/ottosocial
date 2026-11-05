@@ -14,7 +14,13 @@ importers:
       '@clerk/nextjs':
         specifier: ^7.9.23
         version: 7.9.23(next@16.3.8(@babel/core@7.29.7)(@types/node@20.19.19)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@remotion/media':
+        specifier: 4.0.468
+        version: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@remotion/player':
+        specifier: 4.0.468
+        version: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@remotion/web-renderer':
         specifier: 4.0.468
         version: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@supabase/supabase-js':
@@ -391,6 +397,21 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@mediabunny/aac-encoder@1.45.0':
+    resolution: {integrity: sha512-vLQw8cY7Me6pvTTMkMhOiH9UCuINzfTOETCeDxbGNeNfDqc/7QlxloUH1Ylp/Zz2ek0O8kc6YdygV2vWAPakrA==}
+    peerDependencies:
+      mediabunny: ^1.0.0
+
+  '@mediabunny/flac-encoder@1.45.0':
+    resolution: {integrity: sha512-LfKbAMZVkxRS7PpEIVnWOY/l0KcHv+rjO7pYY3O0TPCZvbHWfrnQjn8JPacPIfuq6Yv7r4f8lhcl7yHSynoRkQ==}
+    peerDependencies:
+      mediabunny: ^1.0.0
+
+  '@mediabunny/mp3-encoder@1.45.0':
+    resolution: {integrity: sha512-Bobi6AaQYEc7TWmPJ8Q0/hcUtBN7pLUC2qjoC7oZR4FcGqGztby6k7A1SWlmswoMOEIhYsOrgDaemrSDAC0QVQ==}
+    peerDependencies:
+      mediabunny: ^1.0.0
+
   '@next/env@16.3.8':
     resolution: {integrity: sha512-Al9zqHVV7TJv0eFuOU4U7Lvv74PTih4Ch63sk2xCIpSTkE3udFnaOcnzP2lQVymiL7yS9Cj2iClUXlR3EQ5sEw==}
 
@@ -461,11 +482,26 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
+  '@remotion/licensing@4.0.468':
+    resolution: {integrity: sha512-l0iIn8YVdKiOBYDN1bnbtguMReq/Q7QozxtHr+mKIHr66zeCjhpwFvHklmN/LXMFGWh2OxfNJ6fgXKWS1Iuy3A==}
+
+  '@remotion/media@4.0.468':
+    resolution: {integrity: sha512-VUIVhN7exPRaXAjxkXAscyrACrQuaaK5OSf2FYK9xxTj69B06x55B6lH+85VVYeqgeskT2v7HC7p/soMmJwnnQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
   '@remotion/player@4.0.468':
     resolution: {integrity: sha512-M0kdFnAZvstMctK2ypoTkFOahI61kUE9HnQAh5/9dPb+FlOwCDLRDnM2LBkltZsJxgqgH1nDe1iNPsry0QCjmw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
+
+  '@remotion/web-renderer@4.0.468':
+    resolution: {integrity: sha512-Ucxw9F7IkqHQdol9qu6UqpQKr29JjeyLrTDPSzDp0ec55MCO7oDvlktYkdc8IGmMQfh0FD8b603phUSXax4XnQ==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -510,6 +546,12 @@ packages:
 
   '@tanstack/query-core@5.105.3':
     resolution: {integrity: sha512-v1rbNy7MB/4Akth7CQH+CerV13K7Ok9hAusEsfz4sCjDdu3/kOSJPoWfoB+YjdEX1eBFBWKNAGE5nqZCgdlHDw==}
+
+  '@types/dom-mediacapture-transform@0.1.12':
+    resolution: {integrity: sha512-d7/QsLRwF864A5mgIM/YrfiglHoYn7zgCcAoJgW404r+2DwnNr7EBbLnCWpmOMgH8y0te73L1AV6H1bmauaWFw==}
+
+  '@types/dom-webcodecs@0.1.13':
+    resolution: {integrity: sha512-O5hkiFIcjjszPIYyUSyvScyvrBoV3NOEEZx/pMlsu44TKzWNkLVBBxnxJz42in5n3QIolYOcBYFCPZZ0h8SkwQ==}
 
   '@types/estree@1.0.10':
     resolution: {integrity: sha512-lTyOMnOcmRBzdCv6/4zUZCrEhV0xrqQiUZBZtVcbmLHBXKLnN8q89v/wKRF/Q0HbwVsqbIG3o5HDoFl9sduM+g==}
@@ -1433,6 +1475,9 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
+  mediabunny@1.45.0:
+    resolution: {integrity: sha512-oK3sMMYbucoF6LUX62L/2M9d+p9ve6KDQgL87kNfhsB0/XmTe9iRLUcgQgg9Gpgvi8Sb96zYfOUL6i17y0bdNg==}
+
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -1887,6 +1932,9 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
@@ -2231,6 +2279,18 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@mediabunny/aac-encoder@1.45.0(mediabunny@1.45.0)':
+    dependencies:
+      mediabunny: 1.45.0
+
+  '@mediabunny/flac-encoder@1.45.0(mediabunny@1.45.0)':
+    dependencies:
+      mediabunny: 1.45.0
+
+  '@mediabunny/mp3-encoder@1.45.0(mediabunny@1.45.0)':
+    dependencies:
+      mediabunny: 1.45.0
+
   '@next/env@16.3.8': {}
 
   '@next/eslint-plugin-next@16.3.8(eslint@9.39.5)':
@@ -2278,8 +2338,29 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@remotion/licensing@4.0.468': {}
+
+  '@remotion/media@4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      mediabunny: 1.45.0
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      remotion: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      zod: 4.3.6
+
   '@remotion/player@4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      remotion: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+
+  '@remotion/web-renderer@4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@mediabunny/aac-encoder': 1.45.0(mediabunny@1.45.0)
+      '@mediabunny/flac-encoder': 1.45.0(mediabunny@1.45.0)
+      '@mediabunny/mp3-encoder': 1.45.0(mediabunny@1.45.0)
+      '@remotion/licensing': 4.0.468
+      mediabunny: 1.45.0
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
       remotion: 4.0.468(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2325,6 +2406,12 @@ snapshots:
       tslib: 2.9.1
 
   '@tanstack/query-core@5.105.3': {}
+
+  '@types/dom-mediacapture-transform@0.1.12':
+    dependencies:
+      '@types/dom-webcodecs': 0.1.13
+
+  '@types/dom-webcodecs@0.1.13': {}
 
   '@types/estree@1.0.10': {}
 
@@ -3407,6 +3494,11 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
+  mediabunny@1.45.0:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.12
+      '@types/dom-webcodecs': 0.1.13
+
   merge2@1.4.1: {}
 
   micromatch@4.0.8:
@@ -3992,5 +4084,7 @@ snapshots:
   zod-validation-error@4.0.2(zod@4.6.7):
     dependencies:
       zod: 4.6.7
+
+  zod@4.3.6: {}
 
   zod@4.6.7: {}

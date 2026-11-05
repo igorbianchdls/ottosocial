@@ -17,6 +17,7 @@ import { copyClips, pasteClips, type ClipboardItem } from './project/clipboard'
 import { createFrameStore, useEditor } from './project/useEditor'
 import { FPS, type ClipProps, type Project, type TrackKind } from './project/types'
 import e from './editor.module.css'
+import { ExportDialog } from './export/ExportDialog'
 
 export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: string[] }) {
   const { project, apply, transient, commit, undo, redo, canUndo, canRedo } = useEditor(initial, fileIds?.length ? () => blankProject(initial.id, fileIds) : undefined)
@@ -30,6 +31,7 @@ export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: s
   const [playing, setPlaying] = useState(false)
   const [chat, setChat] = useState<ChatMessage[]>([])
   const [toast, setToast] = useState('')
+  const [exporting, setExporting] = useState(false)
   const playerRef = useRef<PlayerRef>(null)
   const frames = useMemo(() => createFrameStore(), [])
   const duration = projectDuration(project)
@@ -192,7 +194,7 @@ export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: s
           </div>)}
         </div>}
       </div>
-      <button className={e.export} onClick={() => setToast('A exportação para MP4 entra na próxima fase (Remotion Lambda). O vídeo vai direto para o seu Space.')}><Download size={16} />Exportar</button>
+      <button className={e.export} onClick={() => { playerRef.current?.pause(); setExporting(true) }}><Download size={16} />Exportar</button>
     </header>
     <div className={`${e.body} ${pane === 'propriedades' ? e.showProps : e.showTools}`}>
       <div className={e.paneSwitch}><button className={pane === 'ferramentas' ? e.segOn : ''} onClick={() => setPane('ferramentas')}>Ferramentas</button><button className={pane === 'propriedades' ? e.segOn : ''} onClick={() => setPane('propriedades')}>Propriedades</button></div>
@@ -204,5 +206,6 @@ export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: s
       apply={apply} transient={transient} commit={commit} onSplit={split} onDelete={remove} onRipple={ripple} undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
       onDropMedia={(id, frame, trackId) => { const m = media(id); if (m) addMedia(m, frame, trackId) }} />
     {toast && <div className={e.toast} role="status"><Check size={15} />{toast}</div>}
+    {exporting && <ExportDialog project={project} onClose={() => setExporting(false)} />}
   </div>
 }

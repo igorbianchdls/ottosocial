@@ -8,6 +8,8 @@ import { signedUrl } from '@/features/spaces/remote'
 import { getDrive, remoteDrive } from '@/features/spaces/store'
 
 const urls = new Map<string, string | null>()
+// Files whose link finished loading, with or without success.
+const settled = new Set<string>()
 const listeners = new Set<() => void>()
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
 
@@ -16,9 +18,26 @@ function load(fileId: string) {
   const f = getDrive().files.find(x => x.id === fileId)
   if (!f?.uploaded) return // sample files and the audio library have no content: the block draws a stand-in
   urls.set(fileId, null)
-  const done = (u: string | null | undefined) => { urls.set(fileId, u ?? null); listeners.forEach(l => l()) }
+  const done = (u: string | null | undefined) => { urls.set(fileId, u ?? null); settled.add(fileId); listeners.forEach(l => l()) }
   if (remoteDrive) { if (f.storagePath) void signedUrl(f.storagePath).then(done); else done(null) }
   else void getBlob(fileId).then(b => done(b ? URL.createObjectURL(b) : null))
+}
+
+/**
+ * Loads the links of these files and waits for them (the export needs every file ready before the first
+ * frame, or it would draw the stand-in). Files without content resolve at once.
+ */
+export function preloadMediaUrls(fileIds: string[]) {
+  const pending = [...new Set(fileIds)].map(id => new Promise<void>(resolve => {
+    load(id)
+    const ready = () => settled.has(id) || !urls.has(id)
+    if (ready()) { resolve(); return }
+    const check = () => { if (ready()) { listeners.delete(check); resolve() } }
+    listeners.add(check)
+    // A link that never comes back must not hold the export forever.
+    setTimeout(() => { listeners.delete(check); resolve() }, 20000)
+  }))
+  return Promise.all(pending).then(() => undefined)
 }
 
 /** URL of a Spaces file's content, or null while it loads / when there is none. */
