@@ -24,8 +24,9 @@ function Waveform({ clip, ppf, width }: { clip: Clip; ppf: number; width: number
   return <svg className={e.wave} width={width} height="100%" viewBox={`0 0 ${width} 30`} preserveAspectRatio="none" aria-hidden>
     {Array.from({ length: bars }, (_, i) => {
       const bucket = Math.floor((clip.trimStart + i * framesPerBar) / 4)
-      const h = 4 + 24 * (0.35 * noise(seed, bucket) + 0.65 * Math.abs(Math.sin(bucket / 9 + noise(seed, bucket >> 3) * 3)))
-      return <rect key={i} x={i * 4} y={(30 - h) / 2} width={2} height={h} rx={1} />
+      // Rounded: the server and the browser may disagree on the last digits of sin(), and the page must match.
+      const h = Math.round((4 + 24 * (0.35 * noise(seed, bucket) + 0.65 * Math.abs(Math.sin(bucket / 9 + noise(seed, bucket >> 3) * 3)))) * 10) / 10
+      return <rect key={i} x={i * 4} y={Math.round((30 - h) * 5) / 10} width={2} height={h} rx={1} />
     })}
   </svg>
 }

@@ -38,7 +38,7 @@ const sections = [
 ] as const
 type SectionId = (typeof sections)[number]['id']
 
-const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#16a34a', '#0f172a']
+const colors = ['#1c1915', '#d9502c', '#8a9a6b', '#c49a4a', '#5f6f86', '#8c5a6e']
 const timezones = [['America/Sao_Paulo', 'Brasília (GMT−3)'], ['America/Manaus', 'Manaus (GMT−4)'], ['America/Rio_Branco', 'Rio Branco (GMT−5)'], ['America/Noronha', 'Fernando de Noronha (GMT−2)'], ['Europe/Lisbon', 'Lisboa'], ['UTC', 'UTC']]
 
 export function SettingsView({ initial }: { initial?: string }) {
@@ -152,7 +152,7 @@ function Storage() {
   const trashSize = trash.reduce((v, i) => v + (i.type === 'file' ? i.file.size : 0), 0)
   const [browser, setBrowser] = useState<{ usage: number; quota: number } | null>(null)
   useEffect(() => { navigator.storage?.estimate?.().then(e => setBrowser({ usage: e.usage ?? 0, quota: e.quota ?? 0 })).catch(() => {}) }, [])
-  const kinds = [['Vídeos', 'video', '#3b82f6'], ['Imagens', 'image', '#e5484d'], ['Áudios', 'audio', '#16a34a'], ['Textos', 'text', '#e3a12f']] as const
+  const kinds = [['Vídeos', 'video', 'var(--ink)'], ['Imagens', 'image', 'var(--accent)'], ['Áudios', 'audio', '#8a9a6b'], ['Textos', 'text', '#c49a4a']] as const
   return <Card title="Armazenamento" text="Espaço usado pelos arquivos dos seus spaces.">
     <div className={c.storageBig}><b>{formatSize(used)}</b><span>de {formatSize(STORAGE_LIMIT)} usados</span></div>
     <div className={c.stack}>{kinds.map(([l, k, col]) => { const v = files.filter(f => f.kind === k).reduce((a, f) => a + f.size, 0); return <i key={k} style={{ width: `${v / STORAGE_LIMIT * 100}%`, background: col }} title={`${l}: ${formatSize(v)}`} /> })}</div>

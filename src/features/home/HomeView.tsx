@@ -29,7 +29,7 @@ export function HomeView() {
     {welcome && <div className={s.welcome}><b>Tudo pronto, {profile.name.split(' ')[0] || profile.name}!</b><span>O workspace {workspace.name} foi criado. Comece enviando seus vídeos para um space ou criando um post.</span><button className={s.iconBtn} onClick={() => setWelcome(false)} aria-label="Fechar">×</button></div>}
     <div className={s.pageHead}><div><h1>Olá, {profile.name.split(' ')[0] || profile.name}</h1><p>Seus spaces de mídias e as próximas publicações.</p></div><div className={s.row}><Link href="/spaces" className={s.secondary}><Upload size={15} />Enviar arquivos</Link><Link href="/postar" className={s.primary}><Plus size={16} />Novo post</Link></div></div>
     <div className={s.statsRow}>
-      <div className={s.stat}><small>Armazenamento</small><b>{formatSize(used)}</b><span className={s.bar} style={{ marginTop: 8 }}><i style={{ width: `${used / STORAGE_LIMIT * 100}%`, background: 'linear-gradient(90deg, #93c5fd, #3b82f6)' }} /></span></div>
+      <div className={s.stat}><small>Armazenamento</small><b>{formatSize(used)}</b><span className={s.bar} style={{ marginTop: 8 }}><i style={{ width: `${used / STORAGE_LIMIT * 100}%`, background: 'var(--ink)' }} /></span></div>
       <div className={s.stat}><small>Arquivos</small><b>{files.length}</b><em>em {folders.length} pastas</em></div>
       <div className={s.stat}><small>Agendados</small><b>{upcoming.length}</b></div>
       <div className={s.stat}><small>Publicados</small><b>{published.length}</b></div>

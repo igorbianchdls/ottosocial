@@ -17,7 +17,7 @@ export type Settings = {
 }
 
 export const defaults: Settings = {
-  profile: { name: 'Igor', role: 'Fundador', color: '#3b82f6' },
+  profile: { name: 'Igor', role: 'Fundador', color: '#1c1915' },
   workspace: { name: 'Otto ERP', timezone: 'America/Sao_Paulo', language: 'pt-BR' },
   appearance: { theme: 'claro', compact: false },
   notifications: {

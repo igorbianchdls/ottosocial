@@ -12,8 +12,11 @@ export const templates: Template[] = [
   { id: 'quadrado', label: 'Post quadrado', description: 'Feed 1:1 com título', format: '1:1', seconds: 8 },
 ]
 
+// Ids come from the project id and a counter reset per template, so the server and the browser build the same
+// project (an id from the clock made the page differ between them).
+let seed = ''
 let n = 0
-const id = (p: string) => `${p}${Date.now().toString(36)}${++n}`
+const id = (p: string) => `${p}${seed}${++n}`
 const f = (s: number) => Math.round(s * FPS)
 const clip = (start: number, dur: number, props: ClipProps) => ({ id: id('c'), start: f(start), duration: f(dur), trimStart: 0, props })
 const text = (t: string, extra: ClipProps = {}): ClipProps => ({ text: t, fontSize: 76, weight: 800, color: '#ffffff', align: 'center', anim: 'pop', box: defaultBox.texto, transOut: { type: 'fade', frames: 6 }, ...extra })
@@ -22,6 +25,8 @@ const placeholderVideo = (): ClipProps => ({ fileId: 'f15', box: { x: 0, y: 0, w
 export function fromTemplate(projectId: string, templateId: string): Project | null {
   const t = templates.find(x => x.id === templateId)
   if (!t || t.id === 'branco') return null
+  seed = projectId.replace(/[^a-z0-9]/gi, '').slice(-8)
+  n = 0
   const tracks: Track[] = []
   const add = (kind: Track['kind'], clips: Track['clips']) => tracks.push({ id: id('t'), kind, clips })
   if (t.id === 'reel15') {

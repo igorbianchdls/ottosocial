@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Caveat, DM_Serif_Display, Geist, Geist_Mono } from 'next/font/google'
+import { Bebas_Neue, Caveat, DM_Serif_Display, Geist, Geist_Mono, Instrument_Sans, Instrument_Serif } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { clerkPtBR } from '@/features/auth/localization'
 import { CLERK_KEY } from '@/lib/supabase/env'
 import './globals.css'
 
+// The app's type: a refined grotesque for the interface and an editorial serif for titles.
+const ui = Instrument_Sans({ subsets: ['latin', 'latin-ext'], variable: '--font-ui' })
+const display = Instrument_Serif({ subsets: ['latin', 'latin-ext'], weight: '400', style: ['normal', 'italic'], variable: '--font-display' })
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 // Fonts offered for text in the video editor.
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -19,11 +22,11 @@ export const metadata: Metadata = {
 
 /** Clerk's screens in Portuguese, with the app's font, colors and corners. */
 const appearance = {
-  variables: { colorPrimary: '#111111', colorDanger: '#e5484d', fontFamily: 'var(--font-geist-sans), system-ui, sans-serif', borderRadius: '10px' },
+  variables: { colorPrimary: '#1c1915', colorDanger: '#b93a2b', colorText: '#1c1915', colorTextSecondary: '#8e867b', colorBackground: '#fbf9f5', colorInputBackground: '#ffffff', fontFamily: 'var(--font-ui), system-ui, sans-serif', borderRadius: '8px' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="pt-BR" className={`${geist.variable} ${geistMono.variable} ${bebas.variable} ${dmSerif.variable} ${caveat.variable}`}>
+  return <html lang="pt-BR" className={`${ui.variable} ${display.variable} ${geist.variable} ${geistMono.variable} ${bebas.variable} ${dmSerif.variable} ${caveat.variable}`}>
     <body>
       {CLERK_KEY
         ? <ClerkProvider localization={clerkPtBR} appearance={appearance} signInUrl="/login" signUpUrl="/cadastro" afterSignOutUrl="/login"

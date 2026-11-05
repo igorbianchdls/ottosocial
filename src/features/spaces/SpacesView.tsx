@@ -28,10 +28,10 @@ export function SpacesView() {
   const used = files.reduce((v, f) => v + f.size, 0)
   const sum = (kind: string) => files.filter(f => f.kind === kind).reduce((v, f) => v + f.size, 0)
   const byKind = [
-    { label: 'Vídeos', value: sum('video'), color: 'linear-gradient(90deg, #93c5fd, #3b82f6)' },
-    { label: 'Imagens', value: sum('image'), color: 'linear-gradient(90deg, #fca5a5, #e5484d)' },
-    { label: 'Áudios', value: sum('audio'), color: 'linear-gradient(90deg, #86efac, #16a34a)' },
-    { label: 'Textos', value: sum('text'), color: 'linear-gradient(90deg, #fcd34d, #e3a12f)' },
+    { label: 'Vídeos', value: sum('video'), color: 'var(--ink)' },
+    { label: 'Imagens', value: sum('image'), color: 'var(--accent)' },
+    { label: 'Áudios', value: sum('audio'), color: '#8a9a6b' },
+    { label: 'Textos', value: sum('text'), color: '#c49a4a' },
   ]
   const sel = drive.spaces.find(sp => sp.id === hover) ?? drive.spaces[0]
   const recent = [...files].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt)).slice(0, 5)

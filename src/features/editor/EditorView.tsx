@@ -176,7 +176,7 @@ export function EditorView({ initial, fileIds }: { initial: Project; fileIds?: s
 
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2600); return () => clearTimeout(t) }, [toast])
 
-  return <div className={e.editor}>
+  return <div className={e.editor} data-editor>
     <header className={e.top}>
       <Link href="/editor" className={e.back} aria-label="Voltar aos projetos"><ArrowLeft size={18} /></Link>
       <input className={e.name} value={project.name} onChange={ev => apply(p => ({ ...p, name: ev.target.value }), 'name')} aria-label="Nome do projeto" />

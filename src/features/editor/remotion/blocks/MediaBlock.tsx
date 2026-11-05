@@ -8,8 +8,8 @@ import { filterCss } from '../animate'
 import { useMediaUrl } from '../../project/mediaUrls'
 
 const tones: Record<string, [string, string]> = {
-  sand: ['#e9cfae', '#8a5f3b'], blue: ['#9cc3fa', '#1f4fa8'], rose: ['#f5aabd', '#9b2f52'],
-  green: ['#9ddcb8', '#1f6e47'], violet: ['#c5b3f6', '#4b34a3'], amber: ['#f6d08a', '#97650f'],
+  sand: ['#d8c3a3', '#6f5638'], blue: ['#a9b6c4', '#3e4d62'], rose: ['#d8a291', '#7c3a27'],
+  green: ['#b4bf9c', '#4d5a38'], violet: ['#c3a6b4', '#5a3a4b'], amber: ['#ddbd82', '#7d5a1c'],
 }
 const clock = (frames: number) => { const sec = Math.floor(frames / FPS); return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}` }
 

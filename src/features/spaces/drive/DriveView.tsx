@@ -239,7 +239,7 @@ function InfoPanel({ selected, folder, spaceId, onClose, onFavorite }: { selecte
   const target = one?.type === 'folder' ? one.folder : folder
   const stats = target ? folderStats(drive, target.id) : spaceStats(drive, spaceId)
   return <aside className={s.info}>{head}
-    <div className={s.statCard}><small>{target ? 'Nesta pasta' : 'Neste space'}</small><b>{formatSize(stats.size)}</b><span className={s.bar}><i style={{ width: `${Math.max(2, stats.size / STORAGE_LIMIT * 100)}%`, background: 'linear-gradient(90deg, #93c5fd, #3b82f6)' }} /></span></div>
+    <div className={s.statCard}><small>{target ? 'Nesta pasta' : 'Neste space'}</small><b>{formatSize(stats.size)}</b><span className={s.bar}><i style={{ width: `${Math.max(2, stats.size / STORAGE_LIMIT * 100)}%`, background: 'var(--ink)' }} /></span></div>
     <section className={s.infoSection}><h3>Detalhes</h3><div className={s.props}>
       <div>Arquivos<b>{stats.files}</b></div>
       <div>Pastas<b>{stats.folders}</b></div>
