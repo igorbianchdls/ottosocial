@@ -141,7 +141,7 @@ export function Composer({ initialFiles, editId }: { initialFiles: string[]; edi
       </fieldset>
       <aside className={s.preview} aria-label="Prévia">
         <PostPreview files={pickedFiles} caption={caption} accountIds={accountIds} format={format} />
-        <p className={s.note}>Prévia aproximada de {nets.length ? nets.map(n => networkLabel[n]).join(' e ') : 'cada rede'}. Nesta versão de demonstração nada é publicado de verdade. <Link href="/contas" className={s.link}>Ver contas</Link></p>
+        <p className={s.note}>Prévia aproximada de {nets.length ? nets.map(n => networkLabel[n]).join(' e ') : 'cada rede'}. Nesta versão de demonstração nada é publicado de verdade. <Link href="/conectores?aba=redes" className={s.link}>Ver conectores</Link></p>
       </aside>
     </div>
     {toast && <div className={s.toast} role="status"><Check size={15} />{toast}</div>}

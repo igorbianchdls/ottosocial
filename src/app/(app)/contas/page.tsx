@@ -1,5 +1,6 @@
-import { AccountsView } from '@/features/posts/AccountsView'
+import { redirect } from 'next/navigation'
 
+// Contas became the "Redes sociais" tab of Conectores.
 export default function ContasPage() {
-  return <AccountsView />
+  redirect('/conectores?aba=redes')
 }

@@ -4,8 +4,8 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Bell, Blocks, CalendarClock, Clapperboard, Clock, CornerDownLeft, FileText, Film, Folder, FolderClosed, House, Image as ImageIcon,
-  Music, Search, Send, Star, Trash2, UsersRound,
+  Bell, Blocks, Cable, CalendarClock, Clapperboard, Clock, CornerDownLeft, FileText, Film, Folder, FolderClosed, House, Image as ImageIcon,
+  Music, Search, Send, Star, Trash2,
 } from 'lucide-react'
 import { useDrive } from '@/features/spaces/hooks'
 import { fileGone, folderGone, folderLabel, markOpened } from '@/features/spaces/store'
@@ -68,7 +68,7 @@ export function CommandPalette() {
     actions.forEach(([title, href, icon, kw]) => out.push({ id: `a:${title}`, group: 'Ações', title, icon, keywords: kw, run: () => go(href()) }))
     const pages: [string, string, typeof Search][] = [
       ['Início', '/', House], ['Spaces', '/spaces', FolderClosed], ['Editor', '/editor', Clapperboard], ['Postar', '/postar', Send],
-      ['Agendados', '/posts', CalendarClock], ['Contas', '/contas', UsersRound], ['Plugin', '/plugin', Blocks], ['Notificações', '/notificacoes', Bell],
+      ['Agendados', '/posts', CalendarClock], ['Conectores', '/conectores', Cable], ['Plugin', '/plugin', Blocks], ['Notificações', '/notificacoes', Bell],
       ['Recentes', '/spaces/recentes', Clock], ['Favoritos', '/spaces/favoritos', Star], ['Lixeira', '/spaces/lixeira', Trash2],
     ]
     pages.forEach(([title, href, icon]) => out.push({ id: `p:${href}`, group: 'Ir para', title, icon, run: () => go(href) }))

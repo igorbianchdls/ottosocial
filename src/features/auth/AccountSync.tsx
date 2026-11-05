@@ -13,6 +13,7 @@ import { connectAccounts } from '../posts/accounts'
 import { connectEditor } from '../editor/project/store'
 import { connectNotifications } from '../notifications/store'
 import { connectPlugin } from '../plugin/store'
+import { connectConnectors } from '../connectors/store'
 
 /**
  * Bridges Clerk and the database. For the signed-in person and their active workspace (Clerk organization):
@@ -51,7 +52,7 @@ function Sync() {
       // Every part of the app loads the active workspace (Spaces, posts, accounts, editor, notifications, plugin).
       const c = { ws: orgId, user: userId }
       setWorkspace(c)
-      void connectDrive(c); void connectPosts(c); void connectAccounts(c); void connectEditor(c); void connectNotifications(c); void connectPlugin(c)
+      void connectDrive(c); void connectPosts(c); void connectAccounts(c); void connectEditor(c); void connectNotifications(c); void connectPlugin(c); void connectConnectors(c)
       // Personal preferences follow the person; someone new starts from the defaults, not from this browser's cache.
       const saved = (personal?.data ?? {}) as Partial<Settings>
       for (const k of PERSONAL_SECTIONS) updateSettings(k, { ...defaults[k], ...(saved[k] ?? {}) } as never, { fromServer: true })
