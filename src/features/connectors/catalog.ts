@@ -2,11 +2,12 @@
 // each one needs an auth config there, mapped by id in COMPOSIO_AUTH_CONFIGS (see composio.ts).
 import type { Network } from '@/features/posts/data'
 
-export type Category = 'redes' | 'anuncios' | 'arquivos' | 'avisos'
+export type Category = 'redes' | 'anuncios' | 'arquivos' | 'dados' | 'avisos'
 export const categories: { id: Category; label: string; blurb: string }[] = [
   { id: 'redes', label: 'Redes sociais', blurb: 'Onde o OttoSocial publica e de onde puxa as métricas.' },
   { id: 'anuncios', label: 'Anúncios', blurb: 'Campanhas, gasto e resultados das suas contas de anúncio.' },
   { id: 'arquivos', label: 'Arquivos e design', blurb: 'De onde vêm os vídeos e as artes que vão para os Spaces.' },
+  { id: 'dados', label: 'Dados e vendas', blurb: 'Resultados do site, planilhas, loja e CRM ligados aos seus posts.' },
   { id: 'avisos', label: 'Avisos', blurb: 'Onde a equipe fica sabendo quando um post sai, falha ou espera aprovação.' },
 ]
 
@@ -54,6 +55,9 @@ export const connectors: Connector[] = [
   { id: 'tiktokads', name: 'TikTok Ads', category: 'anuncios', toolkit: 'tiktok_ads', color: '#111111',
     description: 'Gasto e resultados dos anúncios no TikTok.', permissions: ['Ver campanhas, gasto e resultados'] },
 
+  { id: 'pinterestads', name: 'Pinterest Ads', category: 'anuncios', toolkit: 'pinterest_ads', color: '#e60023',
+    description: 'Campanhas e resultados dos pins promovidos.', permissions: ['Ver campanhas, gasto e resultados'] },
+
   // ---------- arquivos e design ----------
   { id: 'googledrive', name: 'Google Drive', category: 'arquivos', toolkit: 'googledrive', color: '#1fa463',
     description: 'Importar vídeos e imagens de uma pasta para os Spaces.', permissions: ['Ver e baixar os arquivos que você escolher', 'Acompanhar uma pasta para importar o que chegar nela'] },
@@ -64,6 +68,21 @@ export const connectors: Connector[] = [
   { id: 'canva', name: 'Canva', category: 'arquivos', toolkit: 'canva', color: '#00c4cc',
     description: 'Trazer artes prontas direto para os Spaces e o editor.', permissions: ['Ver os seus designs', 'Exportar designs como imagem ou vídeo'] },
 
+  { id: 'notion', name: 'Notion', category: 'arquivos', toolkit: 'notion', color: '#191919',
+    description: 'Puxar ideias, roteiros e o calendário de conteúdo da equipe.', permissions: ['Ler as páginas e bancos de dados que você compartilhar'] },
+
+  // ---------- dados e vendas ----------
+  { id: 'googleanalytics', name: 'Google Analytics', category: 'dados', toolkit: 'google_analytics', color: '#e37400',
+    description: 'Ver quantas visitas e vendas no site vieram de cada post.', permissions: ['Ler relatórios de tráfego e conversões do site'] },
+  { id: 'googlesheets', name: 'Google Sheets', category: 'dados', toolkit: 'googlesheets', color: '#0f9d58',
+    description: 'Exportar métricas e importar um calendário de posts de uma planilha.', permissions: ['Ler e escrever nas planilhas que você escolher'] },
+  { id: 'shopify', name: 'Shopify', category: 'dados', toolkit: 'shopify', color: '#5e8e3e',
+    description: 'Transformar produtos da loja em posts, com foto, preço e link.', permissions: ['Ver produtos e coleções da loja'] },
+  { id: 'hubspot', name: 'HubSpot', category: 'dados', toolkit: 'hubspot', color: '#ff7a59',
+    description: 'Ligar posts e campanhas aos contatos e negócios do CRM.', permissions: ['Ver contatos, negócios e campanhas'] },
+  { id: 'rdstation', name: 'RD Station', category: 'dados', toolkit: 'rd_station_marketing', color: '#1b4bd1',
+    description: 'Ver os leads que chegaram pelas redes e as campanhas de marketing.', permissions: ['Ver leads, campanhas e conversões'] },
+
   // ---------- avisos ----------
   { id: 'slack', name: 'Slack', category: 'avisos', toolkit: 'slack', color: '#4a154b',
     description: 'Avisar um canal quando um post sai, falha ou espera aprovação.', permissions: ['Enviar mensagens no canal que você escolher'] },
@@ -71,6 +90,10 @@ export const connectors: Connector[] = [
     description: 'Mandar o resumo da semana e os alertas por e-mail.', permissions: ['Enviar e-mails em seu nome para a equipe'] },
   { id: 'whatsapp', name: 'WhatsApp', category: 'avisos', toolkit: 'whatsapp', color: '#25d366',
     description: 'Receber no celular quando algo precisa da sua atenção.', permissions: ['Enviar mensagens para os números cadastrados'] },
+  { id: 'teams', name: 'Microsoft Teams', category: 'avisos', toolkit: 'microsoft_teams', color: '#5b5fc7',
+    description: 'Avisar um canal do Teams quando um post sai, falha ou espera aprovação.', permissions: ['Enviar mensagens no canal que você escolher'] },
+  { id: 'telegram', name: 'Telegram', category: 'avisos', toolkit: 'telegram', color: '#229ed9',
+    description: 'Receber os alertas por um bot do Telegram.', permissions: ['Enviar mensagens pelo bot para o seu chat ou grupo'] },
 ]
 
 export const connectorById = (id: string) => connectors.find(c => c.id === id)
