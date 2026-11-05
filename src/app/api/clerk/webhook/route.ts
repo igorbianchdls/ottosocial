@@ -1,13 +1,15 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
 import type { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { revokeKeysOf } from '@/features/apikeys/server'
 
 /**
  * Clerk tells the app when something is deleted there, so the database and the files follow:
  *  - organization.deleted → the workspace, everything in it and its files in the "media" bucket
  *  - user.deleted → the person's profile, preferences, favorites, recents and notifications
  *    (what they created for the team stays)
- *  - organizationMembership.deleted → their row in the workspace's roster
+ *  - organizationMembership.deleted → their row in the workspace's roster, and their API keys there stop working
+ *  - user.deleted also revokes their API keys everywhere
  * Signed by Clerk (Svix); set CLERK_WEBHOOK_SIGNING_SECRET and SUPABASE_SECRET_KEY.
  */
 export async function POST(req: NextRequest) {
@@ -23,6 +25,7 @@ export async function POST(req: NextRequest) {
   }
   if (evt.type === 'user.deleted' && evt.data.id) {
     const user = evt.data.id
+    await revokeKeysOf(user)
     for (const [table, column] of [['favorites', 'user_id'], ['recents', 'user_id'], ['notifications', 'user_id'], ['user_settings', 'user_id'], ['workspace_members', 'user_id'], ['profiles', 'id']] as const) {
       const { error } = await sb.from(table).delete().eq(column, user)
       if (error) return new Response(error.message, { status: 500 })
@@ -30,7 +33,10 @@ export async function POST(req: NextRequest) {
   }
   if (evt.type === 'organizationMembership.deleted') {
     const ws = evt.data.organization?.id, user = evt.data.public_user_data?.user_id
-    if (ws && user) await sb.from('workspace_members').delete().eq('workspace_id', ws).eq('user_id', user)
+    if (ws && user) {
+      await sb.from('workspace_members').delete().eq('workspace_id', ws).eq('user_id', user)
+      await revokeKeysOf(user, ws)
+    }
   }
   return new Response('ok')
 }

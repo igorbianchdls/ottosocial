@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { Bell, Building2, Check, Download, HardDrive, Keyboard, Monitor, Moon, Palette, RotateCcw, Send, Sun, Upload, UserRound, Database } from 'lucide-react'
+import { Bell, Building2, Check, Download, HardDrive, KeyRound, Keyboard, Monitor, Moon, Palette, RotateCcw, Send, Sun, Upload, UserRound, Database } from 'lucide-react'
 import { formatSize } from '@/lib/format'
 import { STORAGE_LIMIT } from '@/features/spaces/data'
 import { useDrive } from '@/features/spaces/hooks'
@@ -20,6 +20,7 @@ import { getPosts } from '@/features/posts/store'
 import { getAccounts } from '@/features/posts/accounts'
 import { getProjectList } from '@/features/editor/project/store'
 import { getNotifications } from '@/features/notifications/store'
+import { ApiKeysSection } from '@/features/apikeys/ApiKeysSection'
 import { APP_KEYS, getSettings, resetSettings, updateSettings, useSettings, type Theme } from './store'
 import s from '@/components/ui.module.css'
 import c from './settings.module.css'
@@ -32,6 +33,7 @@ const sections = [
   { id: 'publicacao', label: 'Publicação', Icon: Send },
   { id: 'armazenamento', label: 'Armazenamento', Icon: HardDrive },
   { id: 'atalhos', label: 'Atalhos', Icon: Keyboard },
+  { id: 'api', label: 'Chaves de API', Icon: KeyRound },
   { id: 'dados', label: 'Dados e backup', Icon: Database },
 ] as const
 type SectionId = (typeof sections)[number]['id']
@@ -56,6 +58,7 @@ export function SettingsView({ initial }: { initial?: string }) {
         {current === 'publicacao' && <Posting onSave={saved} />}
         {current === 'armazenamento' && <Storage />}
         {current === 'atalhos' && <Shortcuts />}
+        {current === 'api' && <ApiKeysSection onToast={setToast} />}
         {current === 'dados' && <Data onToast={setToast} />}
       </div>
     </div>

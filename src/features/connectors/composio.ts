@@ -67,6 +67,22 @@ export async function deleteAccount(accountId: string) {
   catch (e) { if (!(e instanceof ComposioError && e.status === 404)) throw e }
 }
 
+export type Tool = { slug: string; name: string; description: string; parameters: unknown }
+/** The actions a service offers (Composio "tools" of a toolkit), with the schema of their arguments. */
+export async function listTools(toolkit: string, query?: string): Promise<Tool[]> {
+  const qs = new URLSearchParams({ toolkit_slug: toolkit, limit: '200' })
+  if (query) qs.set('query', query)
+  const r = await call<{ items?: Record<string, unknown>[] }>('GET', `/api/v3.1/tools?${qs}`)
+  return (r.items ?? []).map(t => ({ slug: String(t.slug), name: String(t.name ?? t.slug), description: String(t.description ?? ''), parameters: t.input_parameters ?? {} }))
+}
+
+/** Runs one action on a connected account. Composio answers { data, error, successful }. */
+export async function executeTool(opts: { tool: string; accountId: string; workspace: string; args: Record<string, unknown> }) {
+  return call<{ data?: unknown; error?: string | null; successful?: boolean; log_id?: string }>('POST', `/api/v3.1/tools/execute/${encodeURIComponent(opts.tool)}`, {
+    connected_account_id: opts.accountId, user_id: opts.workspace, arguments: opts.args,
+  })
+}
+
 /**
  * Checks a webhook from Composio: "webhook-signature" is "v1,<base64 HMAC-SHA256>" of
  * "<webhook-id>.<webhook-timestamp>.<raw body>" with COMPOSIO_WEBHOOK_SECRET; older than 5 minutes is refused.

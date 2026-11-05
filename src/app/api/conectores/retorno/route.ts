@@ -14,9 +14,11 @@ export async function GET(request: NextRequest) {
   if (!connectionId) return back('/conectores')
   const who = await whoIsAsking()
   const sb = supabaseAdmin()
-  const { data: row } = await sb.from('connectors').select('id, workspace_id, connector, composio_account_id, status').eq('id', connectionId).maybeSingle()
-  // Only the workspace that started it can finish it.
-  if (!row || row.workspace_id !== who.workspace || !row.composio_account_id) return back('/conectores')
+  const { data: row } = await sb.from('connectors').select('id, workspace_id, connector, composio_account_id, status, api_key_id').eq('id', connectionId).maybeSingle()
+  if (!row || !row.composio_account_id || row.status !== 'conectando') return back('/conectores')
+  // From the site, only the workspace that started it can finish it. A link an agent asked for (API key)
+  // is opened by whoever the agent sent it to, maybe signed out: Composio's answer below decides.
+  if (!row.api_key_id && row.workspace_id !== who.workspace) return back('/conectores')
   const page = `/conectores/${row.connector}`
   const name = connectorById(row.connector)?.name ?? row.connector
 
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
       await sb.from('connectors').delete().eq('workspace_id', row.workspace_id).eq('connector', row.connector).eq('status', 'conectando').neq('id', row.id)
       await syncSocialAccount(sb, row.workspace_id, row.connector, 'conectado', account.label, row.composio_account_id)
     }
-    await logActivity(sb, { workspace: row.workspace_id, connection: row.id, connector: row.connector, action: ok ? 'conectou' : 'erro', detail: ok ? `${name} conectado${account.label ? ` (${account.label})` : ''}.` : `O login do ${name} não foi concluído.`, actor: who.userId })
+    await logActivity(sb, { workspace: row.workspace_id, connection: row.id, connector: row.connector, action: ok ? 'conectou' : 'erro', detail: ok ? `${name} conectado${account.label ? ` (${account.label})` : ''}.` : `O login do ${name} não foi concluído.`, actor: who.userId ?? null, apiKey: row.api_key_id })
     return back(`${page}?${ok ? 'ok' : 'erro'}=1`)
   } catch (e) {
     console.error('conectores: falha no retorno', e)

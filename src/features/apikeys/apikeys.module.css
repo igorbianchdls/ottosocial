@@ -1,0 +1,29 @@
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.loading { display: flex; align-items: center; gap: 8px; color: var(--muted); padding: 10px 0; }
+.empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 26px 0 14px; color: var(--muted); text-align: center; }
+.empty b { color: var(--ink); }
+.list { list-style: none; padding: 0; margin: 4px 0 0; }
+.list li { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.list li:first-child { border-top: 0; }
+.icon { color: var(--muted); flex-shrink: 0; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.info b { font-weight: 600; }
+.info small { color: var(--muted); font-size: 12.5px; }
+.info code, .howto code, .head code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--soft); }
+.scopes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.scopes em { font-style: normal; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-strong); }
+.code { margin: 10px 0 12px; padding: 12px 14px; border-radius: 10px; background: var(--soft); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; overflow-x: auto; white-space: pre; }
+.howto { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; color: var(--text); }
+.howto code { word-break: break-all; }
+.warn { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; padding: 9px 11px; border-radius: 9px; background: var(--amber-soft); color: var(--amber) !important; font-size: 13px; }
+.warn svg { flex-shrink: 0; margin-top: 2px; }
+.scopeList { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.scopeList legend { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.scope { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line-strong); cursor: pointer; }
+.scope input { margin-top: 3px; accent-color: var(--blue-strong); }
+.scope span { display: flex; flex-direction: column; gap: 2px; }
+.scope small { color: var(--muted); font-size: 12.5px; }
+.locked { opacity: .55; cursor: not-allowed; }
+.error { color: var(--red); font-size: 13px; }
+.reveal { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--soft); box-shadow: inset 0 0 0 1px var(--line); }
+.reveal code { flex: 1; min-width: 0; font-size: 12.5px; word-break: break-all; user-select: all; }

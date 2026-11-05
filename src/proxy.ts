@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { supabaseConfigured } from './lib/supabase/env'
 
 // Pages anyone can open. Everything else needs a session with a workspace (Clerk organization).
-const PUBLIC = ['/apresentacao', '/login', '/cadastro', '/api/clerk/webhook', '/api/conectores/webhook']
+const PUBLIC = ['/apresentacao', '/login', '/cadastro', '/api/clerk/webhook', '/api/conectores/webhook', '/api/conectores/retorno', '/api/v1']
 const under = (path: string, list: string[]) => list.some(p => path === p || path.startsWith(p + '/'))
 
 /**
