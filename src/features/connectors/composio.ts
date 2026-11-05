@@ -76,11 +76,11 @@ export function verifyWebhook(headers: Headers, rawBody: string): boolean {
   const id = headers.get('webhook-id'), ts = headers.get('webhook-timestamp'), sig = headers.get('webhook-signature')
   if (!secret || !id || !ts || !sig) return false
   if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false
-  const key = secret.startsWith('whsec_') ? Buffer.from(secret.slice(6), 'base64') : Buffer.from(secret)
-  const expected = createHmac('sha256', key).update(`${id}.${ts}.${rawBody}`).digest()
+  // The secret is used as is (UTF-8), as in Composio's manual verification example.
+  const expected = createHmac('sha256', secret).update(`${id}.${ts}.${rawBody}`).digest()
   return sig.split(' ').some(part => {
-    const [version, value] = part.split(',')
-    if (version !== 'v1' || !value) return false
+    const value = part.includes(',') ? part.slice(part.indexOf(',') + 1) : part
+    if (!value) return false
     const given = Buffer.from(value, 'base64')
     return given.length === expected.length && timingSafeEqual(given, expected)
   })
