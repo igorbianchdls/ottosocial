@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Check, CircleCheck, ExternalLink, Loader2, X } from 'lucide-react'
-import { NetworkIcon } from '@/features/posts/badges'
 import type { AccountState } from '@/features/posts/accounts'
 import { useAccount } from '@/features/auth/account'
 import { remoteMode } from '@/lib/sync'
@@ -12,9 +11,10 @@ import s from '@/components/ui.module.css'
 import a from '@/features/posts/accounts.module.css'
 import c from './connectors.module.css'
 
-/** The connector's mark: the network icon the app already uses, else its initial on its color (no brand logos). */
+/** The connector's logo on a white tile (it reads in light and dark mode), else its initial on its color. */
 export function ConnectorBadge({ connector, size = 44 }: { connector: Connector; size?: number }) {
-  if (connector.network) return <NetworkIcon network={connector.network} size={size} />
+  // eslint-disable-next-line @next/next/no-img-element -- small static SVGs, nothing for next/image to optimize
+  if (connector.logo) return <span className={c.logoTile} style={{ width: size, height: size, padding: size * .2 }}><img src={connector.logo} alt="" width={size} height={size} /></span>
   return <span className={c.badge} style={{ width: size, height: size, background: connector.color, fontSize: size * .42 }} aria-hidden="true">{connector.name[0]}</span>
 }
 
