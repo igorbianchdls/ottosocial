@@ -67,7 +67,7 @@ export function SpacesView() {
     </section>
     <aside className={s.info} aria-label="Informações">
       <div className={s.infoHead}><h2>Armazenamento</h2><button className={s.iconBtn} aria-label="Fechar painel"><ChevronsRight size={18} /></button></div>
-      <div className={s.statCard}><small>Usado</small><b>{formatSize(used)} <span className={s.muted} style={{ fontSize: 14, fontWeight: 500 }}>de {formatSize(STORAGE_LIMIT)}</span></b><span className={s.bar}><i style={{ width: `${Math.max(2, used / STORAGE_LIMIT * 100)}%`, background: 'linear-gradient(90deg, #93c5fd, #3b82f6)' }} /></span></div>
+      <div className={s.statCard}><small>Usado</small><b>{formatSize(used)} <span className={s.muted} style={{ fontSize: 14, fontWeight: 500 }}>de {formatSize(STORAGE_LIMIT)}</span></b><span className={s.bar}><i style={{ width: `${Math.max(2, used / STORAGE_LIMIT * 100)}%`, background: 'var(--ink)' }} /></span></div>
       <section className={s.infoSection}><h3>Por tipo</h3><div className={s.props}>{byKind.map(k => <div key={k.label} style={{ flexDirection: 'column', gap: 6 }}>
         <span style={{ display: 'flex', justifyContent: 'space-between' }}>{k.label}<b>{formatSize(k.value)}</b></span>
         <span className={s.bar}><i style={{ width: `${Math.max(2, k.value / Math.max(used, 1) * 100)}%`, background: k.color }} /></span>

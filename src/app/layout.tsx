@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Caveat, DM_Serif_Display, Geist, Geist_Mono, Instrument_Sans, Instrument_Serif } from 'next/font/google'
+import { Bebas_Neue, Caveat, DM_Serif_Display, Geist, Geist_Mono, Instrument_Sans, Newsreader } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { clerkPtBR } from '@/features/auth/localization'
 import { CLERK_KEY } from '@/lib/supabase/env'
@@ -7,7 +7,7 @@ import './globals.css'
 
 // The app's type: a refined grotesque for the interface and an editorial serif for titles.
 const ui = Instrument_Sans({ subsets: ['latin', 'latin-ext'], variable: '--font-ui' })
-const display = Instrument_Serif({ subsets: ['latin', 'latin-ext'], weight: '400', style: ['normal', 'italic'], variable: '--font-display' })
+const display = Newsreader({ subsets: ['latin', 'latin-ext'], style: ['normal', 'italic'], axes: ['opsz'], variable: '--font-display' })
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 // Fonts offered for text in the video editor.
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
