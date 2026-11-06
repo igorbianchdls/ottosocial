@@ -259,3 +259,4 @@
 .welcome { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 18px; border-radius: var(--radius); background: var(--green-soft); color: var(--ink); }
 .welcome b { white-space: nowrap; }
 .welcome span { flex: 1; color: var(--text); }
+.table th.num { text-align: right; }

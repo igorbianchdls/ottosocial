@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Blocks, Cable, CalendarClock, Clapperboard, Clock, FolderClosed, House, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2 } from 'lucide-react'
+import { Bell, Blocks, Cable, Database, CalendarClock, Clapperboard, Clock, FolderClosed, House, PanelLeft, Send, Search, Settings, Sparkles, Star, Trash2 } from 'lucide-react'
 import { useDrive } from '@/features/spaces/hooks'
 import { openPalette } from './CommandPalette'
 import { useVisibleNotifications } from '@/features/notifications/NotificationsView'
@@ -37,6 +37,7 @@ export function Sidebar() {
     {item('/postar', 'Postar', Send, path === '/postar')}
     {item('/posts', 'Agendados', CalendarClock, path === '/posts', scheduled > 0 ? <span className={s.countBadge}>{scheduled}</span> : undefined)}
     {item('/conectores', 'Conectores', Cable, path.startsWith('/conectores'))}
+    {item('/dados', 'Dados', Database, path.startsWith('/dados'))}
     {item('/plugin', 'Plugin', Blocks, path === '/plugin')}
     <div className={s.spacer} />
     <div className={s.sidebarFoot}>

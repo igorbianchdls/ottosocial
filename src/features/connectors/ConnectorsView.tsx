@@ -195,6 +195,7 @@ export function ConnectorDetailView({ id, available, result }: { id: string; ava
         <div className={a.actions}>
           {row.status !== 'conectado' && <ConnectButton row={row} busy={busy === id} onConnect={() => void connect(row)} admin={admin} />}
           {row.status !== 'desconectado' && connector.network && <Link href="/posts" className={s.secondary}>Ver posts</Link>}
+          {row.status === 'conectado' && (id === 'instagram' || id === 'facebook') && <Link href={`/dados?nova=${id}`} className={s.secondary}>Enviar para o BigQuery</Link>}
           {row.status !== 'desconectado' && admin && <button className={s.ghost} onClick={() => askDisconnect(row)} disabled={busy === id}><Unplug size={15} />Desconectar</button>}
         </div>
       </div>

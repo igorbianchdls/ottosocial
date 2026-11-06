@@ -1,0 +1,20 @@
+{
+  "name": "otto-sync",
+  "private": true,
+  "description": "OttoSocial: copies the workspaces' connector data (Instagram, Facebook) to BigQuery. Runs as a Cloud Run Job.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dry-run": "tsx src/dry-run.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "8.1.1",
+    "@supabase/supabase-js": "2.118.0",
+    "tsx": "4.20.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.0",
+    "typescript": "5.9.3"
+  }
+}
