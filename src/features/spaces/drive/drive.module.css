@@ -199,4 +199,3 @@ a:hover > .cardMore, .cardMore:focus-visible { opacity: 1; }
 /* Selection bar: icons only, like Drive; the first action keeps its label. */
 .bulkBtn span { display: none; }
 .bulkBtn:first-of-type span { display: inline; }
-.linkError { color: var(--red, #dc2626); }

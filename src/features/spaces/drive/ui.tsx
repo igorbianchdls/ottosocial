@@ -105,28 +105,3 @@ export function MoveDialog({ drive, count, blocked, onMove, onClose }: { drive: 
     <div className={d.dialogActions}><button className={d.btn} onClick={onClose}>Cancelar</button><button className={d.btnPrimary} disabled={!target} onClick={() => { if (target) { onMove(target.spaceId, target.folderId); onClose() } }}>Mover aqui</button></div>
   </Modal>
 }
-
-/** Paste a Reel link: save it in the folder on screen or download it to the computer. */
-export function LinkDialog({ onImport, onClose }: { onImport: (url: string, mode: 'pasta' | 'baixar') => Promise<string | null>; onClose: () => void }) {
-  const [url, setUrl] = useState('')
-  const [busy, setBusy] = useState<'pasta' | 'baixar' | null>(null)
-  const [error, setError] = useState('')
-  const ok = /instagram\.com\/|instagr\.am\//i.test(url) && !busy
-  const run = async (mode: 'pasta' | 'baixar') => {
-    if (!ok) return
-    setBusy(mode); setError('')
-    const err = await onImport(url.trim(), mode)
-    setBusy(null)
-    if (err) setError(err); else onClose()
-  }
-  return <Modal title="Importar Reel" onClose={() => { if (!busy) onClose() }}>
-    <form onSubmit={e => { e.preventDefault(); void run('pasta') }}>
-      <input autoFocus className={d.input} value={url} onChange={e => { setUrl(e.target.value); setError('') }} placeholder="https://www.instagram.com/reel/…" aria-label="Link do Reel" disabled={!!busy} />
-      <p className={d.note}>{error ? <span className={d.linkError}>{error}</span> : 'Funciona com Reels e vídeos públicos do Instagram. Use só conteúdo seu ou que você tem permissão para usar.'}</p>
-      <div className={d.dialogActions}>
-        <button type="button" className={d.btn} onClick={() => void run('baixar')} disabled={!ok}>{busy === 'baixar' ? 'Baixando…' : 'Baixar no computador'}</button>
-        <button className={d.btnPrimary} disabled={!ok}>{busy === 'pasta' ? 'Importando…' : 'Salvar na pasta'}</button>
-      </div>
-    </form>
-  </Modal>
-}
