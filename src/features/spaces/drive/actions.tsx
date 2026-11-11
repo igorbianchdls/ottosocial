@@ -3,14 +3,14 @@
 // Everything you can do to files and folders, shared by the explorer, Recentes, Favoritos and Lixeira.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Clapperboard, Copy, Download, Eye, FolderInput, FolderOpen, FolderPlus, FolderUp, Pencil, RotateCcw, Send, Star, StarOff, Trash2, Upload } from 'lucide-react'
+import { Check, Clapperboard, Copy, Download, Eye, FolderInput, FolderOpen, FolderPlus, FolderUp, Link2, Pencil, RotateCcw, Send, Star, StarOff, Trash2, Upload } from 'lucide-react'
 import { downloadBlob } from '../blobs'
 import { downloadObject, onRemoteError } from '../remote'
 import { notify } from '@/features/notifications/store'
 import { newProjectId } from '@/features/editor/project/store'
 import { createFolder, deleteForever, remoteDrive, duplicateFiles, emptyTrash, getDrive, isFavorite, markOpened, moveItems, rename, restoreItems, setFavorite, trashItems, uploadFiles, type DFile, type Item } from '../store'
 import { useDrive } from '../hooks'
-import { ConfirmDialog, ContextMenu, MoveDialog, NameDialog, type MenuItem, type MenuState } from './ui'
+import { ConfirmDialog, ContextMenu, LinkDialog, MoveDialog, NameDialog, type MenuItem, type MenuState } from './ui'
 import { Viewer } from './Viewer'
 import d from './drive.module.css'
 
@@ -18,6 +18,7 @@ type Dialog =
   | { kind: 'name'; title: string; initial: string; confirm: string; submit: (name: string) => void }
   | { kind: 'confirm'; title: string; text: string; confirm: string; danger?: boolean; run: () => void }
   | { kind: 'move'; items: Item[] }
+  | { kind: 'link'; spaceId: string; folderId: string | null }
   | null
 
 const files = (items: Item[]) => items.flatMap(i => i.type === 'file' ? [i.file] : [])
@@ -57,6 +58,24 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
   const pickFiles = (spaceId: string, folderId: string | null, folderMode = false) => {
     uploadTarget.current = { spaceId, folderId }
     ;(folderMode ? folderInput : fileInput).current?.click()
+  }
+
+  /** Asks the server for the Reel's MP4, then saves it here or downloads it. Answers an error message, or null. */
+  const importLink = async (url: string, mode: 'pasta' | 'baixar', spaceId: string, folderId: string | null): Promise<string | null> => {
+    let res: Response
+    try { res = await fetch('/api/importar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) }) }
+    catch { return 'Sem conexão. Confira a internet e tente de novo.' }
+    if (!res.ok) return ((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? 'Não foi possível importar.'
+    const name = res.headers.get('X-Nome-Arquivo') || 'reel.mp4'
+    const blob = await res.blob().catch(() => null)
+    if (!blob?.size) return 'O vídeo veio vazio. Tente de novo.'
+    if (mode === 'baixar') {
+      const href = URL.createObjectURL(blob), a = document.createElement('a')
+      a.href = href; a.download = name; a.click()
+      setTimeout(() => URL.revokeObjectURL(href), 1000)
+      setToast('Reel baixado.')
+    } else await upload([new File([blob], name, { type: blob.type || 'video/mp4' })], spaceId, folderId)
+    return null
   }
 
   const open = useCallback((item: Item, siblings?: DFile[]) => {
@@ -111,6 +130,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
     { label: '', divider: true },
     { label: 'Enviar arquivos', icon: Upload, onClick: () => pickFiles(spaceId, folderId) },
     { label: 'Enviar pasta', icon: FolderUp, onClick: () => pickFiles(spaceId, folderId, true) },
+    { label: 'Importar Reel por link', icon: Link2, onClick: () => setDialog({ kind: 'link', spaceId, folderId }) },
   ]
 
   const showMenu = (ev: { clientX: number; clientY: number }, items: MenuItem[]) => setMenu({ x: ev.clientX, y: ev.clientY, items })
@@ -121,6 +141,7 @@ export function useDriveActions(where?: { spaceId: string; folderId: string | nu
     <ContextMenu menu={menu} onClose={() => setMenu(null)} />
     {dialog?.kind === 'name' && <NameDialog title={dialog.title} initial={dialog.initial} confirm={dialog.confirm} onSubmit={dialog.submit} onClose={() => setDialog(null)} />}
     {dialog?.kind === 'confirm' && <ConfirmDialog title={dialog.title} text={dialog.text} confirm={dialog.confirm} danger={dialog.danger} onConfirm={dialog.run} onClose={() => setDialog(null)} />}
+    {dialog?.kind === 'link' && <LinkDialog onImport={(url, mode) => importLink(url, mode, dialog.spaceId, dialog.folderId)} onClose={() => setDialog(null)} />}
     {dialog?.kind === 'move' && <MoveDialog drive={drive} count={dialog.items.length} blocked={dialog.items.flatMap(i => i.type === 'folder' ? [i.folder.id] : [])}
       onMove={(spaceId, folderId) => { const ok = moveItems(dialog.items, spaceId, folderId); setToast(ok ? `${label(dialog.items)} ${dialog.items.length === 1 ? 'movido' : 'movidos'}.` : 'Uma pasta não pode ir para dentro dela mesma.') }} onClose={() => setDialog(null)} />}
     {viewer && <Viewer files={viewer.files} index={viewer.index} onIndex={i => setViewer(v => v && { ...v, index: Math.max(0, Math.min(v.files.length - 1, i)) })} onClose={() => setViewer(null)}
