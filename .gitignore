@@ -6,3 +6,7 @@ out
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Video factory: renders downloaded from /remotion-preview
+/out/
+/public/remotion/exports/

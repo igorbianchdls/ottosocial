@@ -1,0 +1,7 @@
+/* Tailwind for the video factory preview only: some composition parts use its classes. */
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
